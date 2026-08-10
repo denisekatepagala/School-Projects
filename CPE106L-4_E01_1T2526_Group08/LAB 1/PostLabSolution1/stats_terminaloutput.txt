@@ -1,0 +1,15 @@
+How many numbers do you want to input? 10
+Enter the 1st number: 12
+Enter the 2nd number: 23
+Enter the 3rd number: 443
+Enter the 4th number: 54
+Enter the 5th number: 12
+Enter the 6th number: 324
+Enter the 7th number: 53
+Enter the 8th number: 42
+Enter the 9th number: 54
+Enter the 10th number: 65
+
+Average (Mean): 108.2
+Median: 53.5
+Most frequent (Mode): [12.0, 54.0]

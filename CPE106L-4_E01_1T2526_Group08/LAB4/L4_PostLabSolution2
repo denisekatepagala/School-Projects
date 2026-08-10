@@ -1,0 +1,19 @@
+import tkinter as tk
+from tkinter import filedialog
+
+root = tk.Tk()
+root.withdraw()
+
+file_path = filedialog.askopenfilename(
+    title="Select a text file",
+    filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
+)
+
+if file_path:
+    with open(file_path, 'r') as file:
+        content = file.read()
+    print("File path:", file_path)
+    print("\nFile content:\n")
+    print(content)
+else:
+    print("No file selected.")

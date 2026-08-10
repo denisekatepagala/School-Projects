@@ -1,0 +1,38 @@
+import unittest
+import oxo_logic
+
+class TestOxoLogic(unittest.TestCase):
+
+    def test_new_game_is_empty(self):
+        game = oxo_logic.newGame()
+        self.assertEqual(game, [" "] * 9, "New game should be a 9-cell empty board")
+
+    def test_user_move_valid(self):
+        game = oxo_logic.newGame()
+        result = oxo_logic.userMove(game, 0)
+        self.assertEqual(result, '')
+        self.assertEqual(game[0], "X")
+
+    def test_user_move_invalid(self):
+        game = oxo_logic.newGame()
+        game[0] = "X"  # Cell already taken
+        with self.assertRaises(ValueError):
+            oxo_logic.userMove(game, 0)
+
+    def test_computer_move(self):
+        game = oxo_logic.newGame()
+        oxo_logic.userMove(game, 0)  # X moves first
+        result = oxo_logic.computerMove(game)  # O moves
+        self.assertIn("O", game)
+        self.assertTrue(game.count("O") == 1)
+
+    def test_save_and_restore_game(self):
+        game = oxo_logic.newGame()
+        oxo_logic.userMove(game, 4)
+        oxo_logic.saveGame(game)
+
+        restored_game = oxo_logic.restoreGame()
+        self.assertEqual(game, restored_game)
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)
