@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindSpore Quiz</title>
+
+<style>
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background:#f4f4f4;
+    margin:20px;
+}
+.container{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,.2);
+}
+.question{
+    margin-bottom:30px;
+    padding-bottom:15px;
+    border-bottom:1px solid #ddd;
+}
+h1{
+    text-align:center;
+}
+label{
+    display:block;
+    margin:8px 0;
+    cursor:pointer;
+}
+button{
+    padding:12px 30px;
+    font-size:16px;
+    cursor:pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #0056b3;
+}
+#resultsContainer {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    border-left: 5px solid #007bff;
+    display: none;
+}
+.correct-review {
+    color: green;
+    margin: 5px 0 15px 0;
+    font-weight: bold;
+}
+.incorrect-review {
+    color: red;
+    margin: 5px 0 5px 0;
+    font-weight: bold;
+}
+.solution {
+    color: #555;
+    margin: 0 0 15px 0;
+    font-style: italic;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>MindSpore Quiz</h1>
+
+<form id="quizForm">
+
+<div class="question" data-type="checkbox" data-ans="q1_1,q1_2,q1_3,q1_4">
+<h3>1. MindSpore's key features include (Select all that apply)</h3>
+<label><input type="checkbox" id="q1_1"> Graph-based execution</label>
+<label><input type="checkbox" id="q1_2"> Integration with cloud services</label>
+<label><input type="checkbox" id="q1_3"> Automatic differentiation</label>
+<label><input type="checkbox" id="q1_4"> Support for various hardware platforms</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q2_3">
+<h3>2. What's the role of an embedding layer in an NLP model built with MindSpore?</h3>
+<label><input type="radio" name="q2" id="q2_1"> To translate the input text into a different language.</label>
+<label><input type="radio" name="q2" id="q2_2"> To generate new text.</label>
+<label><input type="radio" name="q2" id="q2_3"> To represent words or tokens as dense vectors.</label>
+<label><input type="radio" name="q2" id="q2_4"> To perform sentiment analysis on the input text.</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q3_3,q3_4">
+<h3>3. When should machine learning be used? (Select all that apply)</h3>
+<label><input type="checkbox" id="q3_1"> The complexity of the rules is low, and the problem is small.</label>
+<label><input type="checkbox" id="q3_2"> Rules are very complicated or cannot be described (e.g. face recognition).</label>
+<label><input type="checkbox" id="q3_3"> Task rules change over time (e.g. defect detection).</label>
+<label><input type="checkbox" id="q3_4"> Data distribution changes over time (e.g. sales prediction).</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q4_1">
+<h3>4. If a model has a large deviation on the test set and a small variance, it means that the model is</h3>
+<label><input type="radio" name="q4" id="q4_1"> Underfitting</label>
+<label><input type="radio" name="q4" id="q4_2"> Overfitting</label>
+<label><input type="radio" name="q4" id="q4_3"> Just fit</label>
+<label><input type="radio" name="q4" id="q4_4"> Maybe overfitting, maybe underfitting</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q5_4">
+<h3>5. What is the typical workflow for training a model in MindSpore?</h3>
+<label><input type="radio" name="q5" id="q5_1"> Define optimizer → Define model → Load dataset → Define loss → Train</label>
+<label><input type="radio" name="q5" id="q5_2"> Load dataset → Define model → Define loss → Define optimizer → Train</label>
+<label><input type="radio" name="q5" id="q5_3"> Define loss → Define model → Load dataset → Define optimizer → Train</label>
+<label><input type="radio" name="q5" id="q5_4"> Define model → Load dataset → Define loss → Define optimizer → Train</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q6_1,q6_2,q6_3,q6_4">
+<h3>6. Common techniques to improve the performance of a MindSpore model (Select all that apply)</h3>
+<label><input type="checkbox" id="q6_1"> Regularization</label>
+<label><input type="checkbox" id="q6_2"> Data augmentation</label>
+<label><input type="checkbox" id="q6_3"> Early stopping</label>
+<label><input type="checkbox" id="q6_4"> Hyperparameter tuning</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q7_3">
+<h3>7. Which component is essential for training a MindSpore model?</h3>
+<label><input type="radio" name="q7" id="q7_1"> Loss function</label>
+<label><input type="radio" name="q7" id="q7_2"> Optimizer</label>
+<label><input type="radio" name="q7" id="q7_3"> Model definition (Cell class)</label>
+<label><input type="radio" name="q7" id="q7_4"> Dataset</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q8_3">
+<h3>8. Which MindSpore layer is commonly used to implement fully connected layers?</h3>
+<label><input type="radio" name="q8" id="q8_1"> mindspore.nn.RNN</label>
+<label><input type="radio" name="q8" id="q8_2"> mindspore.nn.BatchNorm2d</label>
+<label><input type="radio" name="q8" id="q8_3"> mindspore.nn.Dense</label>
+<label><input type="radio" name="q8" id="q8_4"> mindspore.nn.Conv2d</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q9_3">
+<h3>9. MindSpore is primarily designed for</h3>
+<label><input type="radio" name="q9" id="q9_1"> Database management</label>
+<label><input type="radio" name="q9" id="q9_2"> Web development</label>
+<label><input type="radio" name="q9" id="q9_3"> Deep learning</label>
+<label><input type="radio" name="q9" id="q9_4"> Mobile app development</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q10_4">
+<h3>10. How should missing values (&lt;5%) be handled to minimize bias?</h3>
+<label><input type="radio" name="q10" id="q10_1"> Replace by row mean/median</label>
+<label><input type="radio" name="q10" id="q10_2"> Predict using supervised learning</label>
+<label><input type="radio" name="q10" id="q10_3"> Delete observations</label>
+<label><input type="radio" name="q10" id="q10_4"> Replace by column mean/median</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q11_4">
+<h3>11. Which techniques optimize data processing in MindSpore?</h3>
+<label><input type="radio" name="q11" id="q11_1"> Parallel loading and preprocessing</label>
+<label><input type="radio" name="q11" id="q11_2"> Efficient data formats</label>
+<label><input type="radio" name="q11" id="q11_3"> Caching preprocessed data</label>
+<label><input type="radio" name="q11" id="q11_4"> All of the mentioned</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q12_2">
+<h3>12. Primary benefit of transfer learning in GANs</h3>
+<label><input type="radio" name="q12" id="q12_1"> Prevents mode collapse</label>
+<label><input type="radio" name="q12" id="q12_2"> Reduces training data needed</label>
+<label><input type="radio" name="q12" id="q12_3"> Always improves image quality</label>
+<label><input type="radio" name="q12" id="q12_4"> Eliminates discriminator</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q13_1,q13_2,q13_3,q13_4">
+<h3>13. Valid installation methods for MindSpore (Select all that apply)</h3>
+<label><input type="checkbox" id="q13_1"> Conda install</label>
+<label><input type="checkbox" id="q13_2"> Source code compilation</label>
+<label><input type="checkbox" id="q13_3"> Pip install</label>
+<label><input type="checkbox" id="q13_4"> Docker</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q14_1,q14_2,q14_3,q14_4">
+<h3>14. Which deep learning tasks can be performed using MindSpore? (Select all that apply)</h3>
+<label><input type="checkbox" id="q14_1"> Image classification</label>
+<label><input type="checkbox" id="q14_2"> Recommendation systems</label>
+<label><input type="checkbox" id="q14_3"> Reinforcement learning</label>
+<label><input type="checkbox" id="q14_4"> Natural language processing</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q15_1">
+<h3>15. Primary function of a convolutional layer</h3>
+<label><input type="radio" name="q15" id="q15_1"> Extract features</label>
+<label><input type="radio" name="q15" id="q15_2"> Generate new data</label>
+<label><input type="radio" name="q15" id="q15_3"> Reduce dimensionality</label>
+<label><input type="radio" name="q15" id="q15_4"> Classify input</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q16_2">
+<h3>16. NOT a common data augmentation technique</h3>
+<label><input type="radio" name="q16" id="q16_1"> Random horizontal flipping</label>
+<label><input type="radio" name="q16" id="q16_2"> Random padding</label>
+<label><input type="radio" name="q16" id="q16_3"> Random rotation</label>
+<label><input type="radio" name="q16" id="q16_4"> Random cropping</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q17_2">
+<h3>17. Common challenges in data processing</h3>
+<label><input type="radio" name="q17" id="q17_1"> Handling imbalanced datasets</label>
+<label><input type="radio" name="q17" id="q17_2"> All of these mentioned</label>
+<label><input type="radio" name="q17" id="q17_3"> Missing/noisy data</label>
+<label><input type="radio" name="q17" id="q17_4"> Data privacy/security</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q18_1">
+<h3>18. In machine learning, what input does the model need?</h3>
+<label><input type="radio" name="q18" id="q18_1"> Historical data</label>
+<label><input type="radio" name="q18" id="q18_2"> Manual procedure</label>
+<label><input type="radio" name="q18" id="q18_3"> Training algorithm</label>
+<label><input type="radio" name="q18" id="q18_4"> Neural networks</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q19_4">
+<h3>19. Dynamic shapes allow for</h3>
+<label><input type="radio" name="q19" id="q19_1"> Improving generalization</label>
+<label><input type="radio" name="q19" id="q19_2"> Reducing memory usage</label>
+<label><input type="radio" name="q19" id="q19_3"> More complex architectures</label>
+<label><input type="radio" name="q19" id="q19_4"> Handling variable-sized input</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q20_1">
+<h3>20. Why is fine-tuning necessary in transfer learning with GANs?</h3>
+<label><input type="radio" name="q20" id="q20_1"> Adapt pretrained GAN to new dataset</label>
+<label><input type="radio" name="q20" id="q20_2"> Convert generator to discriminator</label>
+<label><input type="radio" name="q20" id="q20_3"> Increase layers</label>
+<label><input type="radio" name="q20" id="q20_4"> Replace pretrained weights</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q21_2">
+<h3>21. Primary class used to define neural network models</h3>
+<label><input type="radio" name="q21" id="q21_1"> mindspore.nn.Network</label>
+<label><input type="radio" name="q21" id="q21_2"> mindspore.nn.Cell</label>
+<label><input type="radio" name="q21" id="q21_3"> mindspore.nn.Module</label>
+<label><input type="radio" name="q21" id="q21_4"> mindspore.nn.Layer</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q22_3">
+<h3>22. Primary programming language used in MindSpore</h3>
+<label><input type="radio" name="q22" id="q22_1"> C#</label>
+<label><input type="radio" name="q22" id="q22_2"> Java</label>
+<label><input type="radio" name="q22" id="q22_3"> Python</label>
+<label><input type="radio" name="q22" id="q22_4"> C++</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q23_1,q23_2,q23_4">
+<h3>23. Improve an underfitting model (Select all that apply)</h3>
+<label><input type="checkbox" id="q23_1"> Add features</label>
+<label><input type="checkbox" id="q23_2"> Reduce regularization</label>
+<label><input type="checkbox" id="q23_3"> Increase amount of data</label>
+<label><input type="checkbox" id="q23_4"> Feature engineering</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q24_2,q24_4">
+<h3>24. Benefits of GeneratorDataset (Select all that apply)</h3>
+<label><input type="checkbox" id="q24_1"> Loading various file formats</label>
+<label><input type="checkbox" id="q24_2"> Handle large datasets</label>
+<label><input type="checkbox" id="q24_3"> Apply transformations</label>
+<label><input type="checkbox" id="q24_4"> Generate synthetic data</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q25_2,q25_3">
+<h3>25. NLP performance improvement techniques (Select all that apply)</h3>
+<label><input type="checkbox" id="q25_1"> Fine-tuning a pretrained GAN</label>
+<label><input type="checkbox" id="q25_2"> Pretrained word embedding</label>
+<label><input type="checkbox" id="q25_3"> Data augmentation</label>
+<label><input type="checkbox" id="q25_4"> More CNN layers</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q26_2">
+<h3>26. Wrong description about hyperparameters</h3>
+<label><input type="radio" name="q26" id="q26_1"> Values are not learned</label>
+<label><input type="radio" name="q26" id="q26_2"> Hyperparameters cannot be modified</label>
+<label><input type="radio" name="q26" id="q26_3"> Set before learning begins</label>
+<label><input type="radio" name="q26" id="q26_4"> Most ML algorithms have hyperparameters</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q27_2">
+<h3>27. Purpose of the construct() method</h3>
+<label><input type="radio" name="q27" id="q27_1"> Define loss function</label>
+<label><input type="radio" name="q27" id="q27_2"> Implement forward pass</label>
+<label><input type="radio" name="q27" id="q27_3"> Specify optimizer</label>
+<label><input type="radio" name="q27" id="q27_4"> Initialize parameters</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q28_1">
+<h3>28. How do you iterate over a MindSpore dataset?</h3>
+<label><input type="radio" name="q28" id="q28_1"> Create a DataLoader</label>
+<label><input type="radio" name="q28" id="q28_2"> Use next()</label>
+<label><input type="radio" name="q28" id="q28_3"> enumerate()</label>
+<label><input type="radio" name="q28" id="q28_4"> for loop</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q29_1,q29_2,q29_3,q29_4">
+<h3>29. Dataset pipeline operations (Select all that apply)</h3>
+<label><input type="checkbox" id="q29_1"> Batching</label>
+<label><input type="checkbox" id="q29_2"> Filtering</label>
+<label><input type="checkbox" id="q29_3"> Zipping</label>
+<label><input type="checkbox" id="q29_4"> Shuffling</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q30_2">
+<h3>30. What does NOT belong to supervised learning?</h3>
+<label><input type="radio" name="q30" id="q30_1"> Logistic Regression</label>
+<label><input type="radio" name="q30" id="q30_2"> Principal Component Analysis</label>
+<label><input type="radio" name="q30" id="q30_3"> Decision Tree</label>
+<label><input type="radio" name="q30" id="q30_4"> Support Vector Machine</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q31_4">
+<h3>31. Purpose of the map operation</h3>
+<label><input type="radio" name="q31" id="q31_1"> Shuffle dataset</label>
+<label><input type="radio" name="q31" id="q31_2"> Batch dataset</label>
+<label><input type="radio" name="q31" id="q31_3"> Filter dataset</label>
+<label><input type="radio" name="q31" id="q31_4"> Apply transformations</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q32_1">
+<h3>32. What does stride do in Conv2d?</h3>
+<label><input type="radio" name="q32" id="q32_1"> Specifies convolution step size</label>
+<label><input type="radio" name="q32" id="q32_2"> Determines receptive field</label>
+<label><input type="radio" name="q32" id="q32_3"> Adds padding</label>
+<label><input type="radio" name="q32" id="q32_4"> Controls output channels</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q33_4">
+<h3>33. Role of mindspore.train.Model</h3>
+<label><input type="radio" name="q33" id="q33_1"> Custom loss</label>
+<label><input type="radio" name="q33" id="q33_2"> Load dataset</label>
+<label><input type="radio" name="q33" id="q33_3"> Define network</label>
+<label><input type="radio" name="q33" id="q33_4"> High-level training/evaluation interface</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q34_1,q34_2,q34_3,q34_4">
+<h3>34. Prevent overfitting (Select all that apply)</h3>
+<label><input type="checkbox" id="q34_1"> Integration (Ensemble) method</label>
+<label><input type="checkbox" id="q34_2"> Increase regularization</label>
+<label><input type="checkbox" id="q34_3"> Feature engineering</label>
+<label><input type="checkbox" id="q34_4"> Cross validation</label>
+</div>
+
+<div class="question" data-type="checkbox" data-ans="q35_1,q35_2,q35_4">
+<h3>35. NLP tasks implemented using MindSpore (Select all that apply)</h3>
+<label><input type="checkbox" id="q35_1"> Text classification</label>
+<label><input type="checkbox" id="q35_2"> Machine translation</label>
+<label><input type="checkbox" id="q35_3"> Image recognition</label>
+<label><input type="checkbox" id="q35_4"> Sentiment analysis</label>
+</div>
+
+<div class="question" data-type="radio" data-ans="q36_3">
+<h3>36. MindSpore's automatic parallelization helps in</h3>
+<label><input type="radio" name="q36" id="q36_1"> Improving accuracy</label>
+<label><input type="radio" name="q36" id="q36_2"> Enhancing interpretability</label>
+<label><input type="radio" name="q36" id="q36_3"> Reducing training time</label>
+<label><input type="radio" name="q36" id="q36_4"> Simplifying preprocessing</label>
+</div>
+
+<br>
+
+<button type="button" onclick="gradeQuiz()">Submit Quiz</button>
+
+<div id="resultsContainer">
+    <h2 id="score"></h2>
+    <hr>
+    <div id="reviewDetails"></div>
+</div>
+
+</form>
+
+</div>
+
+<script>
+function gradeQuiz() {
+    const questions = document.querySelectorAll('.question');
+    let totalScore = 0;
+    let reviewHTML = "";
+
+    questions.forEach((q) => {
+        const type = q.getAttribute('data-type');
+        const correctAnswers = q.getAttribute('data-ans').split(',');
+        const questionTitle = q.querySelector('h3').innerText;
+        
+        let userCorrect = true;
+        let chosenLabels = [];
+        let solutionLabels = [];
+
+        // Parse all option labels for text output review
+        q.querySelectorAll('label').forEach(label => {
+            const input = label.querySelector('input');
+            if (correctAnswers.includes(input.id)) {
+                solutionLabels.push(label.innerText.trim());
+            }
+            if (input.checked) {
+                chosenLabels.push(label.innerText.trim());
+            }
+        });
+
+        if (type === 'radio') {
+            const selected = q.querySelector('input[type="radio"]:checked');
+            if (!selected || !correctAnswers.includes(selected.id)) {
+                userCorrect = false;
+            }
+        } else if (type === 'checkbox') {
+            // Checkboxes: User must choose all correct options and no incorrect options
+            let selectedCount = 0;
+            q.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) {
+                    selectedCount++;
+                    if (!correctAnswers.includes(cb.id)) {
+                        userCorrect = false;
+                    }
+                }
+            });
+            if (selectedCount !== correctAnswers.length) {
+                userCorrect = false;
+            }
+        }
+
+        reviewHTML += `<p><strong>${questionTitle}</strong></p>`;
+        if (userCorrect) {
+            totalScore++;
+            reviewHTML += `<p class="correct-review">✓ Correct!</p>`;
+        } else {
+            reviewHTML += `<p class="incorrect-review">✗ Incorrect</p>`;
+            reviewHTML += `<p class="solution"><strong>Correct Answer:</strong> ${solutionLabels.join(', ')}</p>`;
+        }
+    });
+
+    // Display Results Header
+    const resultsContainer = document.getElementById('resultsContainer');
+    const scoreElement = document.getElementById('score');
+    const reviewDetails = document.getElementById('reviewDetails');
+
+    scoreElement.innerText = `Your Final Score: ${totalScore} / ${questions.length}`;
+    reviewDetails.innerHTML = reviewHTML;
+    resultsContainer.style.display = 'block';
+
+    // Scroll down to view the results
+    resultsContainer.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

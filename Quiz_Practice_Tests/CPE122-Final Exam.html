@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSP Rapid 100 Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f2ed;--surface:#fff;--surface2:#eceae3;--border:#ddd9ce;
+  --text:#1a1814;--muted:#8a8578;
+  --accent:#c8522a;--accent-bg:#f7ede8;
+  --blue:#2a6cc8;--blue-bg:#e8eff7;
+  --green:#2a9c5a;--green-bg:#edf7f2;
+  --correct:#2a9c5a;--correct-bg:#edf7f2;--correct-border:#a8d5bc;
+  --wrong:#c8522a;--wrong-bg:#f7ede8;--wrong-border:#f0b8a0;
+  --mono:'IBM Plex Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+.wrap{max-width:820px;margin:0 auto;padding:0 20px;}
+header{border-bottom:1px solid var(--border);padding:18px 0;display:flex;align-items:center;gap:12px;}
+.logo{width:34px;height:34px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo span{color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;}
+.logo-text h1{font-size:15px;font-weight:700;}
+.logo-text p{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* SELECTOR */
+#sel{padding:44px 0 80px;}
+.hero{margin-bottom:36px;}
+.hero h2{font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:8px;}
+.hero h2 em{font-style:normal;color:var(--accent);}
+.hero p{font-size:14px;color:var(--muted);font-family:var(--mono);}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:640px){.cards{grid-template-columns:1fr;}.hero h2{font-size:26px;}}
+.qcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px 18px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;user-select:none;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ca,var(--accent));border-radius:12px 0 0 12px;opacity:0;transition:opacity .15s;}
+.qcard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.07);}
+.qcard.sel{border-color:var(--ca,var(--accent));background:var(--cb,var(--accent-bg));}
+.qcard.sel::before{opacity:1;}
+.card-num{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;color:var(--ca,var(--accent));margin-bottom:8px;display:block;}
+.qcard h3{font-size:15px;font-weight:700;margin-bottom:3px;}
+.card-cnt{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.chk{position:absolute;top:12px;right:12px;width:17px;height:17px;background:var(--ca,var(--accent));border-radius:50%;display:none;align-items:center;justify-content:center;}
+.chk::after{content:'';width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px);display:block;}
+.qcard.sel .chk{display:flex;}
+.opts-bar{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap;}
+.tog{display:flex;align-items:center;gap:7px;padding:8px 15px;background:var(--surface);border:1.5px solid var(--border);border-radius:50px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tog:hover{border-color:var(--text);color:var(--text);}
+.tog.on{background:var(--text);border-color:var(--text);color:var(--bg);}
+.start-btn{width:100%;padding:15px;background:var(--text);color:var(--bg);border:none;border-radius:12px;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:-.2px;}
+.start-btn:hover{background:#333;transform:translateY(-1px);}
+.start-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;}
+
+/* QUIZ */
+#quiz{padding:24px 0 80px;}
+.qbar{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.back-btn{padding:6px 13px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.back-btn:hover{border-color:var(--text);color:var(--text);}
+.prog-track{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--text);border-radius:3px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+.q-num{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.q-num strong{color:var(--text);}
+
+/* BREADCRUMB DOTS */
+.breadcrumb{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:22px;padding:10px 0;border-bottom:1px solid var(--border);max-height:95px;overflow-y:auto;}
+.bdot{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .15s;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bdot:hover{border-color:var(--text);color:var(--text);}
+.bdot.current{border-color:var(--text);background:var(--text);color:var(--bg);}
+.bdot.done-c{border-color:var(--correct);background:var(--correct-bg);color:var(--correct);}
+.bdot.done-w{border-color:var(--wrong);background:var(--wrong-bg);color:var(--wrong);}
+
+.q-src{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);background:var(--surface2);display:inline-block;padding:3px 9px;border-radius:4px;margin-bottom:14px;}
+.q-txt{font-size:18px;font-weight:600;line-height:1.45;margin-bottom:26px;letter-spacing:-.3px;}
+.opts-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px;}
+.opt{display:flex;align-items:flex-start;gap:13px;padding:13px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;cursor:pointer;text-align:left;font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.4;transition:all .12s;width:100%;}
+.opt:hover:not(:disabled):not(.correct):not(.wrong){border-color:var(--text);background:var(--surface2);}
+.opt-k{width:22px;height:22px;flex-shrink:0;border-radius:5px;background:var(--surface2);border:1px solid var(--border);font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .12s;}
+.opt:hover:not(:disabled):not(.correct):not(.wrong) .opt-k{background:var(--text);border-color:var(--text);color:var(--bg);}
+.opt.correct{border-color:var(--correct-border);background:var(--correct-bg);}
+.opt.correct .opt-k{background:var(--correct);border-color:var(--correct);color:#fff;}
+.opt.wrong{border-color:var(--wrong-border);background:var(--wrong-bg);}
+.opt.wrong .opt-k{background:var(--wrong);border-color:var(--wrong);color:#fff;}
+
+.fb{padding:13px 16px;border-radius:10px;font-size:13px;line-height:1.5;margin-bottom:18px;display:none;border-left:4px solid;}
+.fb.show{display:block;}
+.fb.ok{background:var(--correct-bg);border-color:var(--correct);color:#1a5c38;}
+.fb.bad{background:var(--wrong-bg);border-color:var(--wrong);color:#7a2c10;}
+.fb .ans{font-weight:700;display:block;margin-top:3px;}
+.nav-row{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.nav-btn{padding:11px 22px;border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.nav-btn.ghost{background:var(--surface);border:1.5px solid var(--border);color:var(--muted);}
+.nav-btn.ghost:hover{border-color:var(--text);color:var(--text);}
+.nav-btn.primary{background:var(--text);color:var(--bg);border:none;}
+.nav-btn.primary:hover{background:#333;}
+.nav-btn:disabled{opacity:.35;cursor:not-allowed;}
+.auto-note{font-size:11px;color:var(--muted);font-family:var(--mono);font-style:italic;}
+
+/* RESULTS */
+#res{padding:56px 0 80px;text-align:center;}
+.score-ring{width:130px;height:130px;margin:0 auto 24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;border:3.5px solid var(--text);}
+.score-n{font-size:38px;font-weight:800;letter-spacing:-2px;line-height:1;}
+.score-d{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.res-title{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:5px;}
+.res-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:32px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:32px;}
+.sbox{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:16px;}
+.sv{font-size:30px;font-weight:800;letter-spacing:-1px;}
+.sv.g{color:var(--correct);}
+.sv.r{color:var(--wrong);}
+.sl{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.5px;}
+.res-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.rb{padding:11px 22px;border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.rb.p{background:var(--text);color:var(--bg);border:none;}
+.rb.p:hover{background:#333;}
+.rb.g{background:var(--surface);color:var(--text);border:1.5px solid var(--border);}
+.rb.g:hover{border-color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo"><span>100</span></div>
+  <div class="logo-text"><h1>DSP Rapid Review</h1><p>Flashcard Edition • 100 Short-Form Prompts</p></div>
+</header>
+
+<!-- SELECTOR -->
+<div id="sel" class="screen active">
+  <div class="hero">
+    <h2>Speed-Run Room</h2>
+    <p>// Zero fluff. Just quick memory triggers and True/False rules.</p>
+  </div>
+  <div class="cards">
+    <div class="qcard" id="c1" style="--ca:#c8522a;--cb:#f7ede8" onclick="toggleCard(1)">
+      <div class="chk"></div><span class="card-num">QUIZ 01 (TOPICS 1-3)</span>
+      <h3>Signals &amp; Systems</h3><div class="card-cnt" id="cnt1">— items</div>
+    </div>
+    <div class="qcard" id="c2" style="--ca:#2a6cc8;--cb:#e8eff7" onclick="toggleCard(2)">
+      <div class="chk"></div><span class="card-num">QUIZ 02 (TOPICS 4-6)</span>
+      <h3>Z &amp; DFT Transforms</h3><div class="card-cnt" id="cnt2">— items</div>
+    </div>
+    <div class="qcard" id="c3" style="--ca:#2a9c5a;--cb:#edf7f2" onclick="toggleCard(3)">
+      <div class="chk"></div><span class="card-num">QUIZ 03 (TOPICS 7-8)</span>
+      <h3>FIR &amp; IIR Filters</h3><div class="card-cnt" id="cnt3">— items</div>
+    </div>
+  </div>
+  <div class="opts-bar">
+    <button class="tog" id="togRand" onclick="toggleRand()">⇄ Randomize Sets</button>
+    <button class="tog" id="togAll" onclick="selectAll()">◈ Select All 100 Items</button>
+  </div>
+  <button class="start-btn" id="startBtn" onclick="startQuiz()" disabled>Launch Rapid Fire Session →</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="screen">
+  <div class="qbar">
+    <button class="back-btn" onclick="goSel()">← Back</button>
+    <div class="prog-track"><div class="prog-fill" id="pbar" style="width:0%"></div></div>
+    <span class="q-num" id="qnum"><strong>1</strong>/1</span>
+  </div>
+  <div class="breadcrumb" id="breadcrumb"></div>
+  <div class="q-src" id="qsrc"></div>
+  <div class="q-txt" id="qtxt"></div>
+  <div class="opts-list" id="optlist"></div>
+  <div class="fb" id="fb"></div>
+  <div class="nav-row">
+    <button class="nav-btn ghost" id="prevBtn" onclick="goPrev()">← Prev</button>
+    <span class="auto-note" id="autonote"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="goNext()" style="display:none">Next →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="res" class="screen">
+  <div class="score-ring">
+    <div class="score-n" id="sn">0</div>
+    <div class="score-d" id="sd">/ 100</div>
+  </div>
+  <div class="res-title" id="rt">Session Complete</div>
+  <div class="res-sub" id="rs">—</div>
+  <div class="stats">
+    <div class="sbox"><div class="sv g" id="ss1">0</div><div class="sl">CORRECT</div></div>
+    <div class="sbox"><div class="sv r" id="ss2">0</div><div class="sl">WRONG</div></div>
+    <div class="sbox"><div class="sv" id="ss3">0%</div><div class="sl">ACCURACY</div></div>
+  </div>
+  <div class="res-btns">
+    <button class="rb p" onclick="restartSame()">↺ Retry Deck</button>
+    <button class="rb g" onclick="goSel()">Dashboard</button>
+  </div>
+</div>
+</div>
+
+<script>
+// QUIZ 1: SHORTENED PUNCHY PROMPTS (35 ITEMS)
+const Q1 = [
+  {q:"Extract useful information from physical waveforms?",a:"Signal Processing",o:["Signal Analysis","Signal Filtering","Signal Processing","Sampling"]},
+  {q:"Spectrum is exactly zero beyond a specific finite point?",a:"Band-limited Signal",o:["Digital Signal","Continuous Signal","Band-limited Signal","Discrete-time Signal"]},
+  {q:"Absolute minimum safe sampling rate for perfect reconstruction?",a:"Nyquist Rate",o:["Fundamental Frequency","Decimation Rate","Nyquist Rate","Crossover Frequency"]},
+  {q:"High frequencies masquerade as lower ones due to under-sampling?",a:"Aliasing",o:["Quantization","Sampling","Aliasing","Decimation"]},
+  {q:"Placed before ADC to block frequencies above folding limit?",a:"Prefilter (PrF)",o:["DAC","ADC","Prefilter (PrF)","All-pass Filter"]},
+  {q:"Converts analog wave directly into binary numbers?",a:"ADC",o:["DAC","ADC","Prefilter (PrF)","Spectrum Analyzer"]},
+  {q:"Converts discrete sequence back into continuous physical voltage?",a:"DAC",o:["ADC","DAC","Postfilter (PoF)","Quantizer"]},
+  {q:"Smooths out step-like staircases exiting the DAC?",a:"Postfilter (PoF)",o:["Prefilter (PrF)","Postfilter (PoF)","Sample and Hold","Up-sampler"]},
+  {q:"Absolute values of a system's overall frequency gain?",a:"Magnitude Response",o:["Phase Response","Group Delay","Steady-state Response","Magnitude Response"]},
+  {q:"Tracking frequency parameters along with relative phase details?",a:"Spectrum",o:["Bode Plot","Spectrum","Group Delay","Discrete Sequence"]},
+  {q:"Negative derivative of phase response tracking system delays?",a:"Group Delay",o:["Phase Response","Magnitude Response","Transient Response","Group Delay"]},
+  {q:"Initial system behavior before settling into static track?",a:"Transient Response",o:["Steady-state Response","Transient Response","Zero-State Response","BIBO Stability"]},
+  {q:"System output state as time reaches infinity?",a:"Steady-state Response",o:["Transient Response","Unit Impulse Response","Steady-state Response","Zero-Input Response"]},
+  {q:"Value is 1 at n=0, and 0 everywhere else?",a:"Unit Sample Sequence",o:["Unit Step Sequence","Exponential Sequence","Unit Sample Sequence","Sinusoidal Sequence"]},
+  {q:"Flat value of 1 for all indices n >= 0?",a:"Unit Step Sequence",o:["Unit Sample Sequence","Ramp Sequence","Unit Step Sequence","Causal Sequence"]},
+  {q:"Changes linearly with time via y[n] = n?",a:"Ramp Sequence",o:["Unit Step Sequence","Ramp Sequence","Exponential Sequence","Sinusoidal Sequence"]},
+  {q:"Modeled directly under x[n] = a^n profile?",a:"Exponential Sequence",o:["Sinusoidal Sequence","Ramp Sequence","Exponential Sequence","Unit Sample Sequence"]},
+  {q:"Periodic alternating oscillations modeled by sine/cosine?",a:"Sinusoidal Sequence",o:["Exponential Sequence","Sinusoidal Sequence","Ramp Sequence","Even Sequence"]},
+  {q:"Sequence values are completely symmetric around origin axis (x[-n] = x[n])?",a:"Even Sequence",o:["Odd Sequence","Even Sequence","Causal Sequence","Symmetric Impulse Response"]},
+  {q:"Sequence values are completely inverted across origin axis (x[-n] = -x[n])?",a:"Odd Sequence",o:["Even Sequence","Odd Sequence","Antisymmetric Sequence","Causal Sequence"]},
+  {q:"Satisfies both proportionality and superposition scaling scales?",a:"Linear System",o:["Shift-invariant System","Causal Sequence","Linear System","Stable System"]},
+  {q:"Time shift in input yields identical time shift in output?",a:"Shift-invariant System",o:["Linear System","Shift-invariant System","Causal System","Stable System"]},
+  {q:"Output depends strictly on current and past inputs?",a:"Causal System / Sequence",o:["Linear System","Causal System / Sequence","Shift-invariant System","Stable System"]},
+  {q:"Bounded input always produces guaranteed bounded output?",a:"Stable System",o:["Causal System","Shift-invariant System","Linear System","Stable System"]},
+  {q:"System response when passed a single unit sample input?",a:"Unit Impulse Response",o:["Zero-Input Response","Unit Impulse Response","Steady-state Response","Transient Response"]},
+  {q:"Operation used to find output of linear shift-invariant system?",a:"Convolution Sum",o:["Autocorrelation","Correlation","Convolution Sum","Bilateral Transform"]},
+  {q:"Measures statistical similarity matching between two different signals?",a:"Correlation",o:["Autocorrelation","Correlation","Convolution Sum","Parseval Evaluation"]},
+  {q:"Measures cross-matching similarity within a single shared sequence?",a:"Autocorrelation",o:["Cross-correlation","Autocorrelation","Convolution Sum","Parseval Evaluation"]},
+  {q:"Compresses sample count by downsampling by factor D?",a:"Decimation",o:["Interpolation","Decimation","Upsampling","Quantization"]},
+  {q:"Expands sample density by upsampling by factor I?",a:"Interpolation",o:["Decimation","Downsampling","Interpolation","Anti-aliasing"]},
+  {q:"Accumulated sum of all squared sample magnitudes?",a:"Signal Energy",o:["Signal Power","Signal Energy","Variance-gain","Power Spectrum"]},
+  {q:"Average total energy distribution profile across periodic limits?",a:"Signal Power",o:["Signal Energy","Signal Power","Variance-gain","Power Spectrum"]},
+  {q:"True or False: Prefilters (PrF) are placed immediately AFTER the ADC block.",a:"False",o:["True","False"]},
+  {q:"True or False: An even sequence satisfies x[-n] = x[n] for all n.",a:"True",o:["True","False"]},
+  {q:"True or False: Decimation scales up sample rate by adding zero points.",a:"False",o:["True","False"]}
+];
+
+// QUIZ 2: SHORTENED PUNCHY PROMPTS (35 ITEMS)
+const Q2 = [
+  {q:"Z-transform tracking non-causal signals from negative to positive infinity?",a:"Bilateral Transform",o:["Unilateral Transform","Bilateral Transform","One-sided Z-Transform","Discrete Fourier Transform"]},
+  {q:"Z-transform tracking causal loops with non-zero initial states (starts at 0)?",a:"Unilateral Transform",o:["Bilateral Transform","Unilateral Transform","Bilateral Z-Transform","Inversion Transformation"]},
+  {q:"Domain zone on Z-plane where the transform summation converges?",a:"Region of Convergence (ROC)",o:["Unit Circle","Region of Convergence (ROC)","Pole-zero Diagram","System Function Domain"]},
+  {q:"Roots of the numerator polynomial?",a:"Zeros",o:["Poles","Zeros","Residues","Contours"]},
+  {q:"Roots of the denominator polynomial?",a:"Poles",o:["Zeros","Poles","Residues","Contours"]},
+  {q:"Where must poles reside for a causal system to be perfectly stable?",a:"Inside unit-circle",o:["Outside unit-circle","On the unit-circle","Inside unit-circle","Left-half plane"]},
+  {q:"Response driven entirely by initial conditions when input is dead?",a:"Zero-Input Response",o:["Zero-State Response","Zero-Input Response","Transient Response","Impulse Response"]},
+  {q:"Response driven entirely by input when initial conditions are zero?",a:"Zero-State Response",o:["Zero-Input Response","Transient Response","Zero-State Response","Steady-state Response"]},
+  {q:"Transforms finite discrete time blocks into a finite frequency grid?",a:"Discrete Fourier Transform (DFT)",o:["Continuous Fourier Transform","Discrete Fourier Transform (DFT)","Z-Transform","Fast Fourier Transform"]},
+  {q:"Custom indexing restriction locked entirely inside circular frame?",a:"Modulo-N Operation",o:["Modulo-N Operation","Zero-padding","Bilateral Transform","Prewarping"]},
+  {q:"Appending zero parameters to make frequency display look smoother/denser?",a:"Zero-padding",o:["Decimation","Zero-padding","Interpolation","Circular Shift"]},
+  {q:"Resolution boost driven strictly by collecting more actual raw data?",a:"High-resolution Spectrum",o:["High-density Spectrum","High-resolution Spectrum","Energy Density Spectrum","Magnitude Response"]},
+  {q:"Dense visual spacing that can hide detail unless zeros are added?",a:"High-density Spectrum",o:["High-resolution Spectrum","High-density Spectrum","Power Spectrum","Phase Spectrum"]},
+  {q:"Square operational matrix used to calculate a direct DFT loop?",a:"DFT Matrix",o:["DFT Matrix","Twiddle Factor","Polyphase Filter","Kaiser Matrix"]},
+  {q:"Shifting sequence indexes cyclically within a fixed block length?",a:"Circular Shift",o:["Linear Shift","Circular Shift","Circular Folding","Zero-padding"]},
+  {q:"Reversing sequence indexing strictly via modulo-N maps?",a:"Circular Folding",o:["Circular Shift","Circular Folding","Circular Convolution","Zero-padding"]},
+  {q:"Sequence layout that stays unchanged after modular time reversal?",a:"Circular Symmetry",o:["Linear Symmetry","Circular Symmetry","Asymmetry","Causal Profile"]},
+  {q:"Equates directly to multiplying two distinct DFT blocks in frequency?",a:"Circular Convolution",o:["Linear Convolution","Circular Convolution","Block Convolution","Fast Convolution"]},
+  {q:"Splitting a massive transform block down into smaller parts?",a:"Divide-and-combine",o:["Decimation-in-frequency (DIF)","Decimation-in-time (DIT)","Divide-and-combine","Mixed-radix FFT"]},
+  {q:"Complex exponential phase rotators used as multipliers in FFT?",a:"Twiddle Factor",o:["Twiddle Factor","Variance-gain","Kaiser Parameter","Proportional Gain"]},
+  {q:"FFT pipeline strategy that splits up the input time samples?",a:"Decimation-in-time (DIT)",o:["Decimation-in-frequency (DIF)","Decimation-in-time (DIT)","Mixed-radix FFT","Fast Convolution"]},
+  {q:"FFT pipeline strategy that splits up the output frequency samples?",a:"Decimation-in-frequency (DIF)",o:["Decimation-in-time (DIT)","Decimation-in-frequency (DIF)","Divide-and-combine","Radix-2 Strategy"]},
+  {q:"Executing linear filtering at high speeds via FFT setups?",a:"Fast Convolution",o:["Circular Convolution","Fast Convolution","Direct Convolution","Decimation Filter"]},
+  {q:"Fast block convolution that discards corrupted data edge parts?",a:"Overlap-and-save",o:["Overlap-and-add","Overlap-and-save","Bilinear Transformation","Impulse Invariance"]},
+  {q:"Fast block convolution that sums overlapping data edges together?",a:"Overlap-and-add",o:["Overlap-and-save","Overlap-and-add","Fast Convolution","Decimation-in-time (DIT)"]},
+  {q:"True or False: The ROC for a stable, causal system must include the unit circle.",a:"True",o:["True","False"]},
+  {q:"True or False: Zeros on the unit circle drive system gain to infinity.",a:"False",o:["True","False"]},
+  {q:"True or False: Multiplying two DFTs directly equals a standard linear convolution.",a:"False",o:["True","False"]},
+  {q:"True or False: Zero-padding increases your true hardware frequency resolution.",a:"False",o:["True","False"]},
+  {q:"True or False: Unilateral Z-transform sums from negative to positive infinity.",a:"False",o:["True","False"]},
+  {q:"True or False: Twiddle factors act as complex phase rotating weights.",a:"True",o:["True","False"]},
+  {q:"True or False: Decimation-in-frequency splits input into even and odd sets.",a:"False",o:["True","False"]},
+  {q:"True or False: Overlap-and-save works by discarding data boundary edges.",a:"True",o:["True","False"]},
+  {q:"Energy distribution profile derived from magnitude-squared Fourier?",a:"Energy Density Spectrum",o:["Power Spectrum","Energy Density Spectrum","Bilateral Evaluation","DFT Layout"]},
+  {q:"Measures total periodic signal behavior over discrete DFT bins?",a:"Power Spectrum",o:["Energy Spectrum","Power Spectrum","Quantization Gain","Modulo Domain"]}
+];
+
+// QUIZ 3: SHORTENED PUNCHY PROMPTS (30 ITEMS)
+const Q3 = [
+  {q:"Required FIR impulse response behavior for absolute linear phase?",a:"Symmetric or Antisymmetric profile",o:["Symmetric or Antisymmetric profile","Infinite duration","Recursive architecture","All-pass characteristic"]},
+  {q:"FIR design method that truncates ideal infinite loops via time frames?",a:"Window Method",o:["Frequency Sampling Design","Window Method","Bilinear Mapping","Impulse Invariance Method"]},
+  {q:"Window type with an adjustable alpha tuning factor for stopband?",a:"Kaiser Window",o:["Hamming Window","Rectangular Window","Kaiser Window","Blackman Window"]},
+  {q:"Optimal equiripple algorithm that minimizes max approximation error?",a:"Parks-McClellan Algorithm",o:["Goertzel Algorithm","Parks-McClellan Algorithm","Bilinear Transformation","LMS Algorithm"]},
+  {q:"FIR layout: Symmetric impulse response, odd length?",a:"Symmetric impulse response, odd length",o:["Symmetric impulse response, odd length","Symmetric impulse response, even length","Antisymmetric impulse response, odd length","Antisymmetric impulse response, even length"]},
+  {q:"FIR layout: Symmetric impulse response, even length?",a:"Symmetric impulse response, even length",o:["Symmetric impulse response, odd length","Symmetric impulse response, even length","Antisymmetric impulse response, odd length","Antisymmetric impulse response, even length"]},
+  {q:"FIR layout: Antisymmetric impulse response, odd length?",a:"Antisymmetric impulse response, odd length",o:["Symmetric impulse response, odd length","Symmetric impulse response, even length","Antisymmetric impulse response, odd length","Antisymmetric impulse response, even length"]},
+  {q:"FIR layout: Antisymmetric impulse response, even length?",a:"Antisymmetric impulse response, even length",o:["Symmetric impulse response, odd length","Symmetric impulse response, even length","Antisymmetric impulse response, odd length","Antisymmetric impulse response, even length"]},
+  {q:"Classic filter prototype with an absolutely maximally flat passband?",a:"Butterworth Filter",o:["Chebyshev-I Filter","Chebyshev-II Filter","Elliptic Filter","Butterworth Filter"]},
+  {q:"Analog prototype with ripple in passband, smooth monotonic stopband?",a:"Chebyshev-I Filter",o:["Butterworth Filter","Chebyshev-I Filter","Chebyshev-II Filter","Elliptic Filter"]},
+  {q:"Analog prototype with flat monotonic passband, ripple in stopband?",a:"Chebyshev-II Filter",o:["Butterworth Filter","Chebyshev-I Filter","Chebyshev-II Filter","Elliptic Filter"]},
+  {q:"Filter type with ripple components across BOTH passband and stopband?",a:"Elliptic Filter",o:["Butterworth Filter","Chebyshev-I Filter","Chebyshev-II Filter","Elliptic Filter"]},
+  {q:"IIR conversion method matching continuous-time impulse shapes directly?",a:"Impulse Invariance",o:["Bilinear Transformation","Impulse Invariance","Prewarping","Frequency Sampling"]},
+  {q:"Maps analog filters to digital domain without causing any aliasing?",a:"Bilinear Transformation",o:["Impulse Invariance","Bilinear Transformation","Unilateral Mapping","Bilateral Mapping"]},
+  {q:"Nonlinear scale mapping done before bilinear transformation to fix distortion?",a:"Prewarping",o:["Prewarping","Quantization","Decimation","Interpolation"]},
+  {q:"True or False: FIR filters can naturally blow up or become unstable.",a:"False",o:["True","False"]},
+  {q:"True or False: IIR filters contain zero feedback loops or denominator poles.",a:"False",o:["True","False"]},
+  {q:"True or False: Type-2 FIR filters have a forced zero at z = -1.",a:"True",o:["True","False"]},
+  {q:"True or False: Rectangular windows have narrow main lobes but poor stopband attenuation.",a:"True",o:["True","False"]},
+  {q:"True or False: Bilinear transformation warps analog frequency onto the unit circle.",a:"True",o:["True","False"]},
+  {q:"True or False: Impulse Invariance is ideal for designing high-pass filters.",a:"False",o:["True","False"]},
+  {q:"True or False: Elliptic filters give the narrowest transition band for a fixed order.",a:"True",o:["True","False"]},
+  {q:"True or False: Prewarping modifies the digital output data after filtering.",a:"False",o:["True","False"]},
+  {q:"True or False: A Type-3 FIR filter is antisymmetric with an odd length.",a:"True",o:["True","False"]},
+  {q:"True or False: Kaiser windows let you balance mainlobe width vs sidelobes.",a:"True",o:["True","False"]},
+  {q:"Fixed window option providing high stopband isolation with no tuning parameters?",a:"Hamming Window",o:["Rectangular Window","Hamming Window","Kaiser Window","Custom Array"]},
+  {q:"Noise factor introduced when rounding/truncating continuous voltages?",a:"Quantization Error",o:["Aliasing Noise","Quantization Error","Thermal Noise","Phase Distortion"]},
+  {q:"Property that scales noise power in quantization error analysis models?",a:"Variance-gain",o:["Signal Power","Signal Energy","Variance-gain","Energy Density Spectrum"]},
+  {q:"Bridges parameter energy equivalence exactly across time and frequency domains?",a:"Parseval's Theorem",o:["Nyquist Theorem","Parseval's Theorem","Shannon Law","Euler Formula"]},
+  {q:"Discrete sequence tracking linear behaviors matching y[n] = n?",a:"Ramp Sequence",o:["Unit Step Sequence","Ramp Sequence","Exponential Sequence","Sinusoidal Sequence"]}
+];
+
+// ── STATE MANAGEMENT ───────────────────────────────────────────
+const QUIZZES=[
+  {label:"Quiz 1: Signals & Systems",qs:Q1},
+  {label:"Quiz 2: Z & DFT Transforms",qs:Q2},
+  {label:"Quiz 3: Filter Networks",qs:Q3}
+];
+
+let sel=new Set(),doRand=false;
+let questions=[],cur=0,score=0;
+let results=[];
+
+// ── SELECTOR INITIALIZATION ────────────────────────────────────
+for(let i=1; i<=3; i++) {
+  document.getElementById('cnt'+i).textContent=QUIZZES[i-1].qs.length+' items';
+}
+
+function toggleCard(n){
+  if(sel.has(n)) sel.delete(n); else sel.add(n);
+  for(let i=1; i<=3; i++) {
+    const card = document.getElementById('c'+i);
+    if(card) card.classList.toggle('sel', sel.has(i));
+  }
+  document.getElementById('startBtn').disabled=(sel.size===0);
+  document.getElementById('togAll').classList.toggle('on', sel.size===3);
+}
+
+function toggleRand(){
+  doRand=!doRand;
+  document.getElementById('togRand').classList.toggle('on', doRand);
+}
+
+function selectAll(){
+  if(sel.size===3){
+    sel.clear();
+  } else {
+    for(let i=1; i<=3; i++) sel.add(i);
+  }
+  for(let i=1; i<=3; i++){
+    const card = document.getElementById('c'+i);
+    if(card) card.classList.toggle('sel', sel.has(i));
+  }
+  document.getElementById('startBtn').disabled=(sel.size===0);
+  document.getElementById('togAll').classList.toggle('on', sel.size===3);
+}
+
+function shuffle(a){
+  for(let i=a.length-1; i>0; i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  questions=[];
+  sel.forEach(n=>{
+    QUIZZES[n-1].qs.forEach(q=>{
+      questions.push({...q, source: QUIZZES[n-1].label});
+    });
+  });
+  if(doRand) shuffle(questions);
+  results=questions.map(q=>{
+    const isTF = q.o.length === 2 && q.o.includes("True") && q.o.includes("False");
+    const opts = (doRand && !isTF) ? shuffle([...q.o]) : [...q.o];
+    if (isTF) { opts.sort((a,b) => b.localeCompare(a)); } 
+    return {shuffledOpts:opts, chosen:null, correct:false};
+  });
+  cur=0; score=0;
+  showQ();
+  show('quiz');
+}
+
+// ── QUIZ NAVIGATION ────────────────────────────────────────────
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goSel(){show('sel');}
+
+function showQ(){
+  const total=questions.length;
+  const q=questions[cur];
+  const r=results[cur];
+
+  const answered=results.filter(x=>x.chosen!==null).length;
+  document.getElementById('pbar').style.width=(answered/total*100)+'%';
+  document.getElementById('qnum').innerHTML='<strong>'+(cur+1)+'</strong>/'+total;
+
+  buildBreadcrumb();
+
+  document.getElementById('qsrc').textContent=q.source.toUpperCase();
+  document.getElementById('qtxt').textContent=q.q;
+
+  const keys=['A','B','C','D'];
+  const list=document.getElementById('optlist');
+  list.innerHTML='';
+
+  const isPast=r.chosen!==null;
+
+  r.shuffledOpts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';
+    btn.innerHTML=`<span class="opt-k">${keys[i]}</span><span>${o}</span>`;
+
+    if(isPast){
+      btn.disabled=true;
+      if(o===q.a) btn.classList.add('past-correct');
+      if(o===r.chosen && o!==q.a) btn.classList.add('past-wrong');
+    } else {
+      btn.onclick=()=>pick(btn,o,q.a);
+    }
+    list.appendChild(btn);
+  });
+
+  const fb=document.getElementById('fb');
+  if(isPast){
+    fb.className='fb show '+(r.correct?'ok':'bad');
+    fb.innerHTML=r.correct?'Correct!':'Incorrect. <span class="ans">Answer: '+q.a+'</span>';
+  } else {
+    fb.className='fb'; fb.innerHTML='';
+  }
+
+  document.getElementById('prevBtn').disabled=(cur===0);
+  const nb=document.getElementById('nextBtn');
+  if(isPast){
+    nb.style.display='inline-block';
+    nb.textContent=cur+1<total?'Next →':'Results →';
+  } else {
+    nb.style.display='none';
+  }
+  document.getElementById('autonote').textContent=(!isPast)?'Correct choices auto-advance':'';
+}
+
+function buildBreadcrumb(){
+  const bc=document.getElementById('breadcrumb');
+  bc.innerHTML='';
+  
+  let startIdx = Math.max(0, cur - 12);
+  let endIdx = Math.min(questions.length, startIdx + 25);
+  
+  if(endIdx - startIdx < 25) {
+    startIdx = Math.max(0, endIdx - 25);
+  }
+
+  for(let i=startIdx; i<endIdx; i++) {
+    const r=results[i];
+    const d=document.createElement('button');
+    d.className='bdot';
+    d.textContent=i+1;
+    if(i===cur) d.classList.add('current');
+    else if(r.chosen!==null && r.correct) d.classList.add('done-c');
+    else if(r.chosen!==null && !r.correct) d.classList.add('done-w');
+    d.onclick=()=>jumpTo(i);
+    bc.appendChild(d);
+  }
+}
+
+function jumpTo(i){cur=i; showQ();}
+
+function pick(btn,chosen,correct){
+  const r=results[cur];
+  if(r.chosen!==null)return;
+  r.chosen=chosen;
+  r.correct=(chosen===correct);
+  if(r.correct) score++;
+
+  document.querySelectorAll('.opt').forEach(b=>{
+    const txt=b.querySelector('span:last-child').textContent;
+    b.disabled=true;
+    if(txt===correct) b.classList.add('correct');
+    if(txt===chosen && txt!==correct) b.classList.add('wrong');
+  });
+
+  const fb=document.getElementById('fb');
+  if(r.correct){
+    fb.className='fb show ok'; fb.textContent='Correct!';
+    setTimeout(()=>{
+      const total=questions.length;
+      if(cur+1<total){cur++; showQ();}
+      else{showResults();}
+    },400);
+  } else {
+    fb.className='fb show bad';
+    fb.innerHTML='Incorrect. <span class="ans">Answer: '+correct+'</span>';
+    const nb=document.getElementById('nextBtn');
+    nb.style.display='inline-block';
+    nb.textContent=cur+1<questions.length?'Next →':'Results →';
+  }
+  buildBreadcrumb();
+}
+
+function goPrev(){if(cur>0){cur--; showQ();}}
+function goNext(){
+  const total=questions.length;
+  if(cur+1<total){cur++; showQ();}
+  else{showResults();}
+}
+
+function showResults(){
+  const total=questions.length;
+  const pct=Math.round(score/total*100);
+  document.getElementById('sn').textContent=score;
+  document.getElementById('sd').textContent='/ '+total;
+  document.getElementById('rt').textContent=pct>=75?'Passed!':'Review Recommended';
+  document.getElementById('rs').textContent=pct+'% Accuracy — '+score+' / '+total+' correct answers.';
+  document.getElementById('ss1').textContent=score;
+  document.getElementById('ss2').textContent=total-score;
+  document.getElementById('ss3').textContent=pct+'%';
+  show('res');
+}
+
+function restartSame(){
+  results=questions.map(q=>{
+    const isTF = q.o.length === 2 && q.o.includes("True") && q.o.includes("False");
+    const opts = (doRand && !isTF) ? shuffle([...q.o]) : [...q.o];
+    if (isTF) { opts.sort((a,b) => b.localeCompare(a)); }
+    return {shuffledOpts:opts, chosen:null, correct:false};
+  });
+  if(doRand) shuffle(questions);
+  cur=0; score=0;
+  showQ(); show('quiz');
+}
+</script>
+</body>
+</html>

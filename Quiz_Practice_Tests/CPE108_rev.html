@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microprocessor Quiz Reviewer</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f2ed;--surface:#fff;--surface2:#eceae3;--border:#ddd9ce;
+  --text:#1a1814;--muted:#8a8578;
+  --accent:#c8522a;--accent-bg:#f7ede8;
+  --blue:#2a6cc8;--blue-bg:#e8eff7;
+  --green:#2a9c5a;--green-bg:#edf7f2;
+  --correct:#2a9c5a;--correct-bg:#edf7f2;--correct-border:#a8d5bc;
+  --wrong:#c8522a;--wrong-bg:#f7ede8;--wrong-border:#f0b8a0;
+  --mono:'IBM Plex Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px;}
+header{border-bottom:1px solid var(--border);padding:18px 0;display:flex;align-items:center;gap:12px;}
+.logo{width:34px;height:34px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo span{color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;}
+.logo-text h1{font-size:15px;font-weight:700;}
+.logo-text p{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* SELECTOR */
+#sel{padding:44px 0 80px;}
+.hero{margin-bottom:36px;}
+.hero h2{font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:8px;}
+.hero h2 em{font-style:normal;color:var(--accent);}
+.hero p{font-size:14px;color:var(--muted);font-family:var(--mono);}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:520px){.cards{grid-template-columns:1fr;}.hero h2{font-size:26px;}}
+.qcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px 18px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;user-select:none;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ca,var(--accent));border-radius:12px 0 0 12px;opacity:0;transition:opacity .15s;}
+.qcard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.07);}
+.qcard.sel{border-color:var(--ca,var(--accent));background:var(--cb,var(--accent-bg));}
+.qcard.sel::before{opacity:1;}
+.card-num{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;color:var(--ca,var(--accent));margin-bottom:8px;display:block;}
+.qcard h3{font-size:15px;font-weight:700;margin-bottom:3px;}
+.card-cnt{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.chk{position:absolute;top:12px;right:12px;width:17px;height:17px;background:var(--ca,var(--accent));border-radius:50%;display:none;align-items:center;justify-content:center;}
+.chk::after{content:'';width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px);display:block;}
+.qcard.sel .chk{display:flex;}
+.opts-bar{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap;}
+.tog{display:flex;align-items:center;gap:7px;padding:8px 15px;background:var(--surface);border:1.5px solid var(--border);border-radius:50px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tog:hover{border-color:var(--text);color:var(--text);}
+.tog.on{background:var(--text);border-color:var(--text);color:var(--bg);}
+.start-btn{width:100%;padding:15px;background:var(--text);color:var(--bg);border:none;border-radius:12px;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:-.2px;}
+.start-btn:hover{background:#333;transform:translateY(-1px);}
+.start-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;}
+
+/* QUIZ */
+#quiz{padding:24px 0 80px;}
+.qbar{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.back-btn{padding:6px 13px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.back-btn:hover{border-color:var(--text);color:var(--text);}
+.prog-track{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--text);border-radius:3px;transition:width .4s cubic-bezier(.4,0,.2,1);}
+.q-num{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.q-num strong{color:var(--text);}
+
+/* BREADCRUMB DOTS */
+.breadcrumb{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:22px;padding:10px 0;border-bottom:1px solid var(--border);}
+.bdot{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .15s;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bdot:hover{border-color:var(--text);color:var(--text);}
+.bdot.current{border-color:var(--text);background:var(--text);color:var(--bg);}
+.bdot.done-c{border-color:var(--correct);background:var(--correct-bg);color:var(--correct);}
+.bdot.done-w{border-color:var(--wrong);background:var(--wrong-bg);color:var(--wrong);}
+
+.q-src{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);background:var(--surface2);display:inline-block;padding:3px 9px;border-radius:4px;margin-bottom:14px;}
+.q-txt{font-size:19px;font-weight:600;line-height:1.45;margin-bottom:26px;letter-spacing:-.3px;}
+.opts-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px;}
+.opt{display:flex;align-items:flex-start;gap:13px;padding:13px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;cursor:pointer;text-align:left;font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.4;transition:all .12s;width:100%;}
+.opt:hover:not(:disabled):not(.correct):not(.wrong){border-color:var(--text);background:var(--surface2);}
+.opt-k{width:22px;height:22px;flex-shrink:0;border-radius:5px;background:var(--surface2);border:1px solid var(--border);font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .12s;}
+.opt:hover:not(:disabled):not(.correct):not(.wrong) .opt-k{background:var(--text);border-color:var(--text);color:var(--bg);}
+.opt.correct{border-color:var(--correct-border);background:var(--correct-bg);}
+.opt.correct .opt-k{background:var(--correct);border-color:var(--correct);color:#fff;}
+.opt.wrong{border-color:var(--wrong-border);background:var(--wrong-bg);}
+.opt.wrong .opt-k{background:var(--wrong);border-color:var(--wrong);color:#fff;}
+.opt:disabled{cursor:default;}
+.opt.past-correct{border-color:var(--correct-border);background:var(--correct-bg);cursor:default;}
+.opt.past-correct .opt-k{background:var(--correct);border-color:var(--correct);color:#fff;}
+.opt.past-wrong{border-color:var(--wrong-border);background:var(--wrong-bg);cursor:default;}
+.opt.past-wrong .opt-k{background:var(--wrong);border-color:var(--wrong);color:#fff;}
+
+.fb{padding:13px 16px;border-radius:10px;font-size:13px;line-height:1.5;margin-bottom:18px;display:none;border-left:4px solid;}
+.fb.show{display:block;}
+.fb.ok{background:var(--correct-bg);border-color:var(--correct);color:#1a5c38;}
+.fb.bad{background:var(--wrong-bg);border-color:var(--wrong);color:#7a2c10;}
+.fb .ans{font-weight:700;display:block;margin-top:3px;}
+.nav-row{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.nav-btn{padding:11px 22px;border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.nav-btn.ghost{background:var(--surface);border:1.5px solid var(--border);color:var(--muted);}
+.nav-btn.ghost:hover{border-color:var(--text);color:var(--text);}
+.nav-btn.primary{background:var(--text);color:var(--bg);border:none;}
+.nav-btn.primary:hover{background:#333;}
+.nav-btn:disabled{opacity:.35;cursor:not-allowed;}
+.auto-note{font-size:11px;color:var(--muted);font-family:var(--mono);font-style:italic;}
+
+/* RESULTS */
+#res{padding:56px 0 80px;text-align:center;}
+.score-ring{width:130px;height:130px;margin:0 auto 24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;border:3.5px solid var(--text);}
+.score-n{font-size:38px;font-weight:800;letter-spacing:-2px;line-height:1;}
+.score-d{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.res-title{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:5px;}
+.res-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:32px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:32px;}
+.sbox{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:16px;}
+.sv{font-size:30px;font-weight:800;letter-spacing:-1px;}
+.sv.g{color:var(--correct);}
+.sv.r{color:var(--wrong);}
+.sl{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.5px;}
+.res-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.rb{padding:11px 22px;border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.rb.p{background:var(--text);color:var(--bg);border:none;}
+.rb.p:hover{background:#333;}
+.rb.g{background:var(--surface);color:var(--text);border:1.5px solid var(--border);}
+.rb.g:hover{border-color:var(--text);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo"><span>μP</span></div>
+  <div class="logo-text"><h1>Microprocessor Reviewer</h1><p>Quiz 1 · Quiz 2 · Quiz 3</p></div>
+</header>
+
+<!-- SELECTOR -->
+<div id="sel" class="screen active">
+  <div class="hero">
+    <h2>Choose your<br><em>quiz set.</em></h2>
+    <p>// pick one, combine, or take them all</p>
+  </div>
+  <div class="cards">
+    <div class="qcard" id="c1" style="--ca:#c8522a;--cb:#f7ede8" onclick="toggleCard(1)">
+      <div class="chk"></div>
+      <span class="card-num">QUIZ 01</span>
+      <h3>Fundamentals</h3>
+      <div class="card-cnt" id="cnt1">— questions</div>
+    </div>
+    <div class="qcard" id="c2" style="--ca:#2a6cc8;--cb:#e8eff7" onclick="toggleCard(2)">
+      <div class="chk"></div>
+      <span class="card-num">QUIZ 02</span>
+      <h3>Memory &amp; Addressing</h3>
+      <div class="card-cnt" id="cnt2">— questions</div>
+    </div>
+    <div class="qcard" id="c3" style="--ca:#2a9c5a;--cb:#edf7f2" onclick="toggleCard(3)">
+      <div class="chk"></div>
+      <span class="card-num">QUIZ 03</span>
+      <h3>Instructions &amp; Code</h3>
+      <div class="card-cnt" id="cnt3">— questions</div>
+    </div>
+  </div>
+  <div class="opts-bar">
+    <button class="tog" id="togRand" onclick="toggleRand()">⇄ Randomize</button>
+    <button class="tog" id="togAll" onclick="selectAll()">◈ Select all</button>
+  </div>
+  <button class="start-btn" id="startBtn" onclick="startQuiz()" disabled>Start Quiz →</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="screen">
+  <div class="qbar">
+    <button class="back-btn" onclick="goSel()">← Back</button>
+    <div class="prog-track"><div class="prog-fill" id="pbar" style="width:0%"></div></div>
+    <span class="q-num" id="qnum"><strong>1</strong>/1</span>
+  </div>
+  <div class="breadcrumb" id="breadcrumb"></div>
+  <div class="q-src" id="qsrc"></div>
+  <div class="q-txt" id="qtxt"></div>
+  <div class="opts-list" id="optlist"></div>
+  <div class="fb" id="fb"></div>
+  <div class="nav-row">
+    <button class="nav-btn ghost" id="prevBtn" onclick="goPrev()">← Prev</button>
+    <span class="auto-note" id="autonote"></span>
+    <button class="nav-btn primary" id="nextBtn" onclick="goNext()" style="display:none">Next →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="res" class="screen">
+  <div class="score-ring">
+    <div class="score-n" id="sn">0</div>
+    <div class="score-d" id="sd">/ 0</div>
+  </div>
+  <div class="res-title" id="rt">Done!</div>
+  <div class="res-sub" id="rs">—</div>
+  <div class="stats">
+    <div class="sbox"><div class="sv g" id="ss1">0</div><div class="sl">CORRECT</div></div>
+    <div class="sbox"><div class="sv r" id="ss2">0</div><div class="sl">WRONG</div></div>
+    <div class="sbox"><div class="sv" id="ss3">0%</div><div class="sl">SCORE</div></div>
+  </div>
+  <div class="res-btns">
+    <button class="rb p" onclick="restartSame()">↺ Retry same</button>
+    <button class="rb g" onclick="goSel()">Choose different</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ── ALL QUESTIONS ──────────────────────────────────────────────
+
+const Q1 = [
+  {q:"How many bits wide are the general purpose registers in an 8086?",a:"16 bits",o:["8 bits","16 bits","32 bits","64 bits"]},
+  {q:"Which register holds the address of the current stack frame?",a:"EBP",o:["ESP","EBP","EIP","ECX"]},
+  {q:"What is the primary advantage of using registers compared to main memory?",a:"Faster access time",o:["Larger capacity","Faster access time","Lower cost","Easier to program"]},
+  {q:"What happens when a value is pushed onto the stack?",a:"SP is decremented, and the value is stored at the new address",o:["SP is incremented, and the value is stored at the new address","The value overwrites the current content of ESP","SP is decremented, and the value is stored at the new address","The value is stored in the highest numbered register"]},
+  {q:"What happens when a program calls a function?",a:"Return address is pushed onto the stack",o:["Return address is pushed onto the stack","Data Segment Register (DS) is modified","All registers are cleared","IP points to the beginning of the program"]},
+  {q:"What was the first application of the transistor?",a:"Transistor radios",o:["Pocket calculators","Transistor radios","Hearing aids","Personal computers"]},
+  {q:"Which company developed the first commercially successful RISC processor?",a:"MIPS Computer Systems",o:["Intel","IBM","MIPS Computer Systems","Sun Microsystems"]},
+  {q:"Who is considered the 'father of the microprocessor'?",a:"Ted Hoff",o:["Gordon Moore","Robert Noyce","Ted Hoff","Jack Kilby"]},
+  {q:"What was the significance of the LSI circuit?",a:"It allowed for the creation of more complex circuits on a single chip",o:["It reduced power consumption","It allowed for the creation of more complex circuits on a single chip","It increased clock speeds","It replaced vacuum tubes"]},
+  {q:"The most basic but complete microprocessor-based computer would consist of:",a:"CPU, memory, I/O, system bus",o:["CPU and memory only","CPU, memory, and I/O","CPU, memory, I/O, system bus","CPU, memory, I/O, system bus, and power supply"]},
+  {q:"What was the primary function of the first microprocessors?",a:"Calculator operations",o:["Gaming","Word processing","Calculator operations","Floating point numbers"]},
+  {q:"What was the name of the first commercially available 8-bit microprocessor?",a:"Intel 8080",o:["Intel 4004","Intel 8008","Intel 8080","Motorola 6800"]},
+  {q:"What is the purpose of an interrupt?",a:"To allow a device to request service from the microprocessor",o:["To store data and instructions","To speed up processing","To allow a device to request service from the microprocessor","To reset the system"]},
+  {q:"Who is credited with the invention of the Large Scale Integration (LSI) circuit?",a:"Robert Noyce",o:["Ted Hoff","Jack Kilby","Gordon Moore","Robert Noyce"]},
+  {q:"What is the primary trend in microprocessor development?",a:"All of the choices",o:["Increased transistor density","Lower power consumption","Faster speeds","All of the choices"]},
+  {q:"Which year did Jack Kilby invent the first integrated circuit?",a:"1958",o:["1947","1952","1958","1964"]},
+  {q:"Which microprocessor was the first developed primarily for games?",a:"Intel 4004",o:["Intel 8080","Intel 4004","Motorola 6800","Zilog Z80"]},
+  {q:"The level of integration in an IC has no bearing on its performance.",a:"False",o:["True","False"]},
+  {q:"What is the main function of a microprocessor?",a:"To perform arithmetic and logic operations",o:["To store data","To display graphics","To perform arithmetic and logic operations","To provide power to the system"]},
+  {q:"Which Pentium model was primarily used in server systems?",a:"Pentium Pro",o:["Pentium MMX","Pentium II","Pentium Pro","Pentium III"]},
+  {q:"What are the three components of the Control Unit (CU)?",a:"Instruction Decoder, Timing, Control Logic",o:["ALU, Decoder, Memory","RAM, Control Logic, I/O Ports","Instruction Decoder, Timing, Control Logic","Data Bus, Address Bus, Control Bus"]},
+  {q:"What component distinguishes a microcontroller from a typical microprocessor?",a:"Read-write memory",o:["ALU","Read-write memory","CPU","Control unit"]},
+  {q:"Which technique is used for handling CTRL for I/O devices?",a:"Isolated I/O or Port-mapped I/O",o:["Memory-Mapped I/O","Timing","Isolated I/O or Port-mapped I/O","Control Logic"]},
+  {q:"Punch cards were a reliable method for storing and managing computer programs.",a:"False",o:["True","False"]},
+  {q:"Who developed the first microprocessor and in what year?",a:"Ted Hoff in 1971",o:["Ted Hoff in 1971","Jack Kilby in 1947","Robert Noyce in 1958","Gordon Moore in 1959"]},
+  {q:"What is the main difference between a microprocessor and a microcontroller?",a:"Microcontroller has additional components like memory and I/O interfaces",o:["Microcontroller is used only in embedded systems","Microprocessor is faster than a microcontroller","Microcontroller has additional components like memory and I/O interfaces","Microprocessor has a simpler instruction set"]},
+  {q:"Given HitRatio=90%, Tcache=1ns, Tram=2ns, MissRatio=10%, what is Tacc?",a:"0.002",o:["0.01","2.1","0.002","0.00001"]},
+  {q:"Which processors are designed specifically for high demand servers?",a:"Xeon MP",o:["Pentium Pro","Core i9","Xeon MP","Itanium 2"]},
+  {q:"When the current history bit is 01 and the predicted branch is taken, what is the next value?",a:"11",o:["00","01","10","11"]},
+  {q:"After each byte of the instruction is fetched, Program Counter is incremented.",a:"True",o:["True","False"]},
+  {q:"This bus is responsible for specifying the time and direction of the transfer.",a:"Control Bus",o:["Data Bus","Address Bus","Control Bus","System Bus"]},
+  {q:"The processor uses these registers to control accesses to memory and I/O.",a:"Segment registers",o:["General-purpose registers","Segment registers","Instruction pointer","Flag registers"]},
+  {q:"It fetches instructions in program order from the instruction cache.",a:"Fetch-Decode Unit",o:["Execute Unit","Dispatch Unit","Fetch-Decode Unit","Control Logic"]},
+  {q:"Which stage sets the Memory and register read, floating-point data?",a:"ER",o:["PF","D1","D2","ER"]},
+  {q:"It is the compromise between the direct-mapped and fully associative designs.",a:"Set-associative cache",o:["Direct-mapped cache","Fully associative cache","Set-associative cache","Write-through cache"]},
+  {q:"The FPU achieves its quick speed through which pipeline order?",a:"PF-D1-D2-X1-X2-EX-WF-ER",o:["PF-D1-D2-X1-X2-EX-WF-ER","PF-D1-D2-EX-WF-ER","D1-D2-X1-X2-EX-WF","PF-D2-X1-X2-EX-ER"]},
+  {q:"A reservation station controls the flow of data through which unit?",a:"Dispatch-Execute Unit",o:["Fetch-Decode Unit","Dispatch-Execute Unit","Instruction Cache","Control Logic"]},
+  {q:"This cycle is used to transfer up to 8 bytes of non-cacheable data.",a:"Burst Cycle",o:["Bus Cycle","Read Cycle","Burst Cycle","Write Cycle"]},
+  {q:"Pentium employs a technique called branch ___.",a:"branch prediction",o:["branch prediction","branch delay","branch folding","branch elimination"]},
+  {q:"Under special circumstances, how many integer or FP instructions can Pentium execute?",a:"4",o:["2","3","4","5"]},
+  {q:"Fill out the blank: a _____ converts source code into machine language.",a:"Compiler",o:["Assembler","Compiler","Linker","Interpreter"]},
+  {q:"Processors capable of parallel instruction execution of multiple instructions are called:",a:"Superscalar machines",o:["Pipeline processors","Superscalar machines","RISC machines","CISC machines"]},
+  // Numbered MCQ section
+  {q:"What register pair is used for string operations in Intel processors?",a:"ESI-EDI",o:["ESI-EDI","EBP-ESP","ECX-EDX","EAX-EBX"]},
+  {q:"The EFLAGS register is an extension of the FLAGS register found in which microprocessor family?",a:"80386",o:["80286","Pentium","8080","80386"]},
+  {q:"A doubleword 66963286H stored in memory using little endian format starting at 00100H. What is the content of memory location 00103H?",a:"66",o:["32","86","96","66"]},
+  {q:"What was the first commercially available personal computer to use the Intel 8080?",a:"Altair 8800",o:["Apple II","Altair 8800","IBM Personal Computer","Commodore PET"]},
+  {q:"What is the primary purpose of the first ICs?",a:"Amplifiers",o:["Logic gates","Microprocessors","Amplifiers","Memory chips"]},
+  {q:"The world's first 8-bit microprocessor.",a:"8008",o:["6800","8080","8008","Z80"]},
+  {q:"Intel _____ is the first microprocessor developed primarily for games, test equipment and other simple digital systems.",a:"4004",o:["4004","8008","8080","8086"]},
+  {q:"The ALUs are clocked at twice the frequency of the processor core. This describes:",a:"Rapid execution engine",o:["Rapid execution engine","Hyperthreading","Hyper-pipelined technology","Execution Trace Cache"]},
+  {q:"Memory is sometimes accessed, I/O devices are used to display the results of the instruction execution. This is the _____ stage.",a:"Execute",o:["Execute","Reset","Fetch","Decode"]},
+  {q:"Who is credited with the invention of the Large-Scale Integration (LSI) circuit containing thousands of transistors?",a:"Robert Noyce",o:["Gordon Moore","Marcian Hoff","Ted Hoff","Robert Noyce"]},
+  {q:"Microcontrollers are a type of microprocessor with additional functionalities.",a:"True",o:["True","False"]},
+  {q:"What is the purpose of an interrupt? (signaling)",a:"Signaling the need for the CPU's attention",o:["Shutting down the system","Increasing the processing speed","Connecting external devices","Signaling the need for the CPU's attention"]},
+  {q:"A maximum of _____ micro-ops can be scheduled at once.",a:"Four",o:["Three","Two","Four","Five"]},
+  {q:"In what year was the Itanium 2 processor released?",a:"2002",o:["1999","2002","2001","2000"]},
+  {q:"How many additional MMX instructions were added to the new SSE in Pentium III?",a:"70",o:["70","80","50","60"]},
+  {q:"What are the two types of instruction pipelining that Pentium employs?",a:"U and V",o:["A and C","X and Y","U and V","P and I"]},
+  {q:"This is the one responsible for producing signals or commands.",a:"Control Unit",o:["Control Bus","Control Unit","Control Logic","Control System"]},
+  {q:"An attempt is made to keep instructions completing at a rate of ___ per clock cycle.",a:"Two",o:["Three","One","Two","Four"]},
+  {q:"What is the purpose of the instruction pointer (IP) register?",a:"It holds the memory address of the next instruction to be fetched",o:["It holds the memory address of the next instruction to be fetched","It manages interrupts from the external devices","It stores the result of arithmetic operations","It stores the current instruction being executed"]},
+  {q:"What was the primary motivation for the development of the Intel 4004?",a:"Developing a programmable logic device for calculators",o:["Replacing bulky and expensive mainframe computers","Creating a powerful computer for scientific research","Developing a programmable logic device for calculators","Building the first personal computer"]},
+  {q:"What was one of the earliest devices used for arithmetic tasks before modern computers?",a:"Slide rule",o:["Analog computer","Slide rule","Pocket calculator","ENIAC"]},
+  {q:"What offset is required to map to physical location 002B3H if the segment base address is 0029H?",a:"0229H",o:["0028","0299H","0029H","0229H"]},
+  {q:"Who developed SSE to improve the performance of 3D graphical applications?",a:"Intel",o:["Intel","Nvidia","Google","AMD"]},
+  {q:"Which one of the reasons why RISC machine is designed with the goals in mind?",a:"All the choices",o:["All the choices","Pipeline everything","Reduces accesses to main memory","Make good use of registers"]},
+  {q:"This is a valid technique for improving instruction execution rate.",a:"Pipelining",o:["Troubleshooting","Prefetch","Pipelining","Branch Prediction"]},
+  {q:"Which of the following has the correct value of Physical Address?",a:"A200:12CF = A32CFH",o:["B2C0:FA22 = 11234H","B2C1:FA21 = 12134F","A200:12CF = A32CFH","0110:ABCD = 0BBCDH"]},
+  {q:"Intel CPUs are also called _____ computers, while Motorola are called _____ computers.",a:"Little endian; big endian",o:["Little endian; big endian","Big endian; little endian","Little Indian; big Indian","Big Indian; little Indian"]},
+  {q:"ENIAC was a digital computer built using vacuum tubes.",a:"True",o:["True","False"]},
+  {q:"What was the downside of using punch cards in early computing?",a:"They were easily damaged",o:["They were expensive to produce","They were easily damaged","They were incompatible with digital systems","They were slow in processing data"]},
+  {q:"These are used to indicate status of the microprocessor and even control some of its features.",a:"Flag register",o:["Status word","Flag register","Flag","Condition code registers"]},
+  {q:"The presence of this type of instructions can reduce the performance gain through pipelining.",a:"Program Transfer Instructions",o:["Data transfer Instructions","Bit Manipulation Instructions","Program Transfer Instructions","String Instructions"]},
+  {q:"What is the function of the program counter (PC) in the fetch stage?",a:"Increment to point to the next instruction",o:["Increment to point to the next instruction","Store the current instruction being executed","Send signals to control units","Decode the opcode of the instruction"]},
+  {q:"Which year was the first commercially available microprocessor, the Intel 4004, released?",a:"1971",o:["1966","1971","1974","1968"]},
+  {q:"Registers are faster than main memory.",a:"True",o:["True","False"]},
+  {q:"What is the purpose of registers?",a:"To store frequently used data for faster access",o:["To hold current instruction being executed","To perform arithmetic and logical operations","To store temporary data used during calculations","To store frequently used data for faster access"]},
+  {q:"Who invented the transistor in 1947, laying the groundwork for the microprocessor?",a:"John Bardeen, Walter Brattain, and William Shockley",o:["John von Neumann and Norbert Wiener","Claude Shannon and Allan Turing","John Bardeen, Walter Brattain, and William Shockley","Steve Jobs and Steve Wozniak"]},
+  {q:"What was the main advantage of the IC over discrete transistors?",a:"Smaller size and reduced complexity",o:["Increase reliability","Smaller size and reduced complexity","Increased processing power","Lower cost"]},
+  {q:"Which company developed the first 16-bit microprocessor, the Intel 8086?",a:"Intel",o:["IBM","Motorola","Intel","Zilog"]},
+  {q:"What is Moore's Law?",a:"The observation that the number of transistors on a microchip doubles approximately every two years",o:["The prediction that the cost of computers will decline by half every year","The theory that the speed of a processor increases exponentially with time","The rule that states that performance is limited by the speed of its memory","The observation that the number of transistors on a microchip doubles approximately every two years"]},
+  {q:"What was the name of the first commercially available 32-bit microprocessor?",a:"Intel 80386",o:["Intel 80386","Intel 80486","SPARC","Motorola 68020"]},
+  {q:"There were already commercial computers developed and sold even before the IC chip was invented.",a:"True",o:["True","False"]},
+  {q:"What is the purpose of the segment registers in the programming model of Intel microprocessors?",a:"They define the base address of memory segments",o:["They manage interrupts from external devices","They define the base address of memory segments","They hold the memory address of data during memory operations","They store the address of the next instruction"]},
+  {q:"Which of the following statements about the Intel 4004 is TRUE?",a:"It was the first microprocessor capable of calculator functions",o:["It was specifically designed for portable computers.","It was used as a computer peripheral controller.","It was the first microprocessor capable of calculator functions","It was the first 10-bit microprocessor."]},
+  {q:"What does a coprocessor support the main CPU with?",a:"Specialized tasks like graphics or encryption",o:["Displaying text on the screen","Specialized tasks like graphics or encryption","Connecting external devices","Main memory Management"]},
+  {q:"What does the level of integration signify in an IC?",a:"All of the options",o:["Power consumption","Processing speed","All of the options","Size of the Chip"]},
+  {q:"What technology replaced vacuum tubes in computers?",a:"Transistors",o:["Integrated Circuits (IC)","Punch Cards","Microprocessors","Transistors"]},
+  {q:"How many ports does a data cache have so it can be accessed from three different places at the same time?",a:"3",o:["4","2","6","3"]},
+  {q:"At the 3rd clock cycle of Pentium's twin pipelines with 8 instructions, what pair is at the 2nd stage?",a:"I-3 and I-4",o:["I-7 and I-8","I-3 and I-4","I-5 and I-6","I-1 and I-2"]},
+  {q:"The element that stores information either temporarily or permanently.",a:"Memory",o:["Memory","Ram","ROM","NVM"]},
+  {q:"Which of the following is NOT one of the three instructions that provide control over cache operation?",a:"INTJ",o:["INTJ","INVLPG","INVD","WBINVD"]},
+  {q:"Cache is a special type of high speed ___.",a:"RAM",o:["CPU","ROM","RAM","NVM"]},
+  {q:"Simulate: Initially CF=0,AF=0,ZF=0,SF=0,PF=0. MOV AL,74h; MOV BL,34h; ADD AL,BL; MOV DL,AL.",a:"CF=0, AF=1, ZF=0, SF=1, PF=1",o:["CF=1, AF=1, ZF=0, SF=0, PF=1","CF=1, AF=1, ZF=0, SF=0, PF=0","CF=0, AF=1, ZF=0, SF=1, PF=1","CF=0, AF=1, ZF=0, SF=1, PF=0"]},
+  {q:"Why can older 16-bit software still run on modern 64-bit processors?",a:"Modern processors have compatibility modes",o:["64-bit registers can hold 16-bit data","No difference, all software runs natively","Software is automatically converted during execution","Modern processors have compatibility modes"]},
+  {q:"Which stage determines if the current pair of instructions can execute together in Pentium?",a:"Address Generate (D2)",o:["Instruction (D1)","Prefetch (PF)","Address Generate (D2)","Pipelining"]},
+  {q:"The Pentium II comes housed in a new 242-pin cartridge called ___.",a:"Single Edge Contact Cartridge",o:["Single Edge Contact Cartridge","Single Edge Complex Cartridge","Single Edge Command Cartridge","Single Edge Control Cartridge"]},
+  {q:"What does WPA mean?",a:"Wi-Fi Protected Access",o:["Wi-Fi Protected Access","Wi-Fi Private Area","Wi-Fi Public Area","Wi-Fi Public Access"]},
+  {q:"These are signals that indicate need of attention, perform special task and resume the pre-empted operation.",a:"Interrupt",o:["Control signals","Operation Code","Commands","Interrupt"]},
+  {q:"The ____ is write-protected to prevent self-modifying code from changing the executing program.",a:"Instruction Cache",o:["Cache Coherency","Data Cache","Bus Snooping","Instruction Cache"]},
+  {q:"Which type of memory is the fastest but also the most expensive?",a:"Cache",o:["ROM","Magnetic Disk","Cache","RAM"]},
+  {q:"What was the primary advantage of RISC processors over CISC processors?",a:"Simplified Instruction Set",o:["Faster clock speed","Higher Transistor Count","Lower Power Consumption","Simplified Instruction Set"]},
+  {q:"What was the name of the first commercially available 64-bit microprocessor?",a:"Intel Itanium",o:["PowerPC 604","Intel Itanium","Intel Pentium","AMD Athlon"]},
+  {q:"This element serves as a medium of communication between the processor and the outside world.",a:"Bus",o:["I/O port","Cables","Bus","Operation Code"]},
+  {q:"Which company developed the first successful RISC processor?",a:"MIPS Computer Systems",o:["Hewlett-Packard","IBM","Sun Microsystems","MIPS Computer Systems"]},
+  {q:"The project that produced the first microprocessor originated in 1969 and was conceptualized by the company:",a:"BUSICOM",o:["Texas Instruments","BUSICOM","Intel","Garrett AiResearch"]},
+  {q:"Which flag selects either increment or decrement mode for DI and/or SI during string operations?",a:"Direction Flag",o:["Interrupt Flag","Direction Flag","Trap Flag","Parity Flag"]},
+  {q:"What is the purpose of the Segment Registers?",a:"Combine with offset to form memory addresses",o:["Determine privilege level for memory access","Hold temporary data during calculations","Store loop counter values","Combine with offset to form memory addresses"]},
+  {q:"Which register is NOT a general-purpose register in the Intel programming model?",a:"IP",o:["R12D","AX","BX","IP"]},
+  {q:"The stack grows upward in memory.",a:"False",o:["True","False"]},
+  {q:"Simulate: CF=0,AF=0,ZF=0,SF=0,PF=0. MOV AL,74h; MOV BL,3Fh; ADD AL,BL; MOV DL,AL.",a:"CF=0, AF=1, ZF=0, SF=1, PF=1",o:["CF=1, AF=1, ZF=0, SF=0, PF=1","CF=1, AF=1, ZF=0, SF=0, PF=0","CF=0, AF=1, ZF=0, SF=1, PF=1","CF=0, AF=1, ZF=0, SF=1, PF=0"]},
+  {q:"Simulate: CF=0,AF=0,ZF=0,SF=0,PF=0. MOV AL,AAh; MOV CL,AL; MOV BL,FBh; SUB CL,BL.",a:"CF=1, AF=1, ZF=0, SF=1, PF=1",o:["CF=1, AF=0, ZF=0, SF=0, PF=1","CF=1, AF=1, ZF=0, SF=1, PF=1","CF=1, AF=0, ZF=0, SF=0, PF=0","CF=1, AF=1, ZF=0, SF=0, PF=0"]},
+  {q:"After executing instruction #5 (ADD AX,BX) in Program 1 where AX=6230h and BX=ACD4h, what is AX?",a:"0F04H",o:["0F04H","2F04H","FF04H","1F04H"]},
+  {q:"Simulate: CF=0,AF=1,ZF=0,SF=0,PF=1,DF=0,IF=1,OF=0,TF=0,NT=1,IOPL=00. After all instructions, which is NOT correct?",a:"CL=39",o:["IOPL=10","CF=1","CL=03","CL=39"]},
+  {q:"What was one of the earliest devices used for arithmetic tasks?",a:"Slide Rule",o:["Pocket Calculator","ENIAC","Slide Rule","Analog Computer"]},
+];
+
+const Q2 = [
+  {q:"PUSH [CX] with CS=0019h, SS=000Ch, BP=CCEBh. Where does it store the word value?",a:"0CDA9-0CDAA",o:["0CDAB-0CDAC","0CDA9-0CDAA","0CDAB","0CDA9"]},
+  {q:"JMP [02DD:3ADCh] in protected mode, DS=02ADh, privilege level 2nd highest. New value of CS?",a:"CS = 001E",o:["CS = 001E","CS = 001D","CS = 0021","CS = 00210"]},
+  {q:"If SS=B62Dh in a real mode system, what is the ending address?",a:"C62CFH",o:["1B62C","B62D0","C62CFH","B62D"]},
+  {q:"This addressing mode uses a register to hold the actual address for the data transfer.",a:"Indirect",o:["Immediate","Indirect","Direct","Register relative"]},
+  {q:"CS=2001H and IP=007CH. Which physical memory location is accessed?",a:"2008CH",o:["2008CH","20010H","3000FH","2007DH"]},
+  {q:"The descriptor describes all of the following in the memory segment EXCEPT:",a:"boundaries",o:["location","size","boundaries","access rights"]},
+  {q:"Descriptor for memory segment AB208000H–AC20AFFFH, data segment, grows upward, writable, 32-bit, privilege 2nd highest, not accessed. Byte 0=?",a:"02",o:["02","10","00","AB"]},
+  {q:"In stack memory addressing modes, the low-order 8 bits are placed in the location addressed by:",a:"SP-2",o:["SP","SP-1","SP-2","SP+1"]},
+  {q:"The addressing mode where you directly specify the operand value is:",a:"Immediate",o:["Immediate","Direct","Register","Indirect"]},
+  {q:"A SUB instruction stores 8467h at offset BD3Fh. Computed address is 5868Eh. What is the ending address?",a:"5F94E",o:["4F94F0","5F94E","4F94F","5F94E0"]},
+  {q:"Memory locations 00390H–00393H contain 9A,76,65,1F. DS=0030H,SI=0090H,BP=0002H. MOV AX,[SI] gives AX=?",a:"769AH",o:["769AH","659AH","1F65H","9A76H"]},
+  {q:"Memory locations 00390H–00393H contain 9A,76,65,1F. DS=0030H,SI=0090H,BP=0002H. MOV AX,[SI+1] gives AX=?",a:"6576H",o:["769AH","6576H","1F65H","7665H"]},
+  {q:"Memory locations 00390H–00393H contain 9A,76,65,1F. DS=0030H,SI=0090H,BP=0002H. MOV AX,[SI][BP] gives AX=?",a:"1F65H",o:["769AH","6576H","1F65H","651FH"]},
+  {q:"The instruction MOV AX, 1234H is an example of:",a:"immediate addressing mode",o:["immediate addressing mode","direct addressing mode","register addressing mode","based indexed addressing mode"]},
+  {q:"The physical address accessed by segment:offset combination A359:B3FD.",a:"BE329",o:["15756","B098C","BE329","AE98D"]},
+  {q:"TI=0 indicates that TI is:",a:"A global descriptor table",o:["A real descriptor table","A local descriptor table","Not a descriptor table","A global descriptor table"]},
+  {q:"The instruction MOV DS:[2000H], AL:",a:"copies byte-size data in AX to the memory",o:["Is illegal, not allowed","has mixed sizes operands","is an example of immediate addressing mode","copies byte-size data in AX to the memory"]},
+  {q:"32-bit microprocessors in protected mode could address up to _____ of memory.",a:"4GB",o:["1GB","640MB","4GB","16GB"]},
+  {q:"To form a physical memory address, appropriate segment register contents are:",a:"all the choices",o:["all the choices","operated using one of addressing modes","added to 16-bit offset address","shifted by left by 4 positions"]},
+  {q:"It selects any location within the 64K byte memory segment.",a:"offset address",o:["segment address","Base","offset address","limit"]},
+  {q:"The DOS operating system requires the microprocessor to operate in _____ mode.",a:"real",o:["real","unconventional","protected","flat"]},
+  {q:"The addressing mode where the effective address of the memory location is visibly part of the instruction.",a:"Direct Mode",o:["Immediate Mode","Direct Mode","Register Mode","Implied Mode"]},
+  {q:"In Real Mode, a memory segment that begins at 10000H will end at:",a:"1FFFFH",o:["2FFFFH","FFFFFH","1F000H","1FFFFH"]},
+  {q:"DS=1A00H and ECX=00002000H (real mode Core2). What is the memory location?",a:"1C000H",o:["1A200H","1C000H","3A000H","12000H"]},
+  {q:"It combines simple tag comparator hardware of direct-mapped cache with flexible fully-associative cache.",a:"Set-associative Cache",o:["Instruction Cache","Data Cache","Set-associative Cache","Cache Coherency"]},
+  {q:"The Pentium Pro outperforms the Pentium for several reasons EXCEPT:",a:"Five Pentium Pro CPUs may work cooperatively",o:["Five Pentium Pro CPUs may work cooperatively","An internal level-2 cache has been added which operates at the speed of the processor core","Four additional address lines bring the address bus to 36 bits, allowing 64GB physical address space","The Pentium's 5-stage pipeline has been replaced by a 14-stage superpipeline"]},
+  {q:"The instruction and data caches contain _____ that translate virtual addresses into physical addresses.",a:"Translation Lookside Buffers",o:["Cache Coherency","Translation Lookside Buffers","Bus Snooping","MESI"]},
+  {q:"A maximum of _____ micro-ops can be scheduled at once.",a:"Four",o:["Three","Two","Four","Five"]},
+  {q:"Which of the following is an advantage of pipelining?",a:"All of the choices",o:["Pipelining increases the overall performance of the CPU","Instruction throughput increases","All of the choices","Faster ALU can be designed when pipelining is used"]},
+  {q:"A _____ architecture allows the Pentium Pro to access data in external memory.",a:"Dual Independent Bus",o:["Single Dependent Bus","Dual Independent Bus","Dual Dependent Bus","Single Independent Bus"]},
+  {q:"_____ is used to store frequently used instructions, such as those in a short loop.",a:"Instruction Cache",o:["Ram Cache","Data Cache","Processor Cache","Instruction Cache"]},
+  {q:"When history bit is 01 and predicted branch is taken, what is the next history bit value?",a:"11",o:["11","10","01","00"]},
+  {q:"The data accessed during the atomic operation often comes in the form of a ___.",a:"Semaphore",o:["Clock Cycle","Lock","XCHG","Semaphore"]},
+  {q:"Which of the following is NOT a valid first instruction of the Pentium floating-point pair?",a:"FMUX",o:["FABS","FSUB","FADD","FMUX"]},
+  {q:"DS=1000H, SS=2000H, BP=1000H, DI=0100H. Memory address accessed by MOV AL,[BP+DI]?",a:"21100H",o:["11100H","21100H","31100H","20100H"]},
+  {q:"What is the memory address of the next instruction: DS=ED69H, DX=A233H (real mode)?",a:"F78C3",o:["18F9C","B1099","FD68F","F78C3"]},
+  {q:"Immediate Addressing Mode transfers the source immediate byte or word of data into the destination register or memory location.",a:"True",o:["True","False"]},
+  {q:"In real mode, what is the ending address of the segment with segment register value D6B2H?",a:"E6B1F",o:["1D6B1","D7B1F","0E6B1","E6B1F"]},
+  {q:"DS=E3DAH, SS=D867H, BX=23FEH, CX=EBBCh, DI=87CCH, BP=AAE4H. MOV FI[BP][SI]+SFADH],CH — destination content?",a:"BC",o:["EBBC","F3D5B","BC","EB"]},
+  {q:"MOV AX, 2020H — what is the addressing mode and bits moved?",a:"Immediate Addressing Mode; 16 bits",o:["Immediate Addressing Mode; 8 bits","Immediate Addressing Mode; 16 bits","Direct Addressing Mode; 8 bits","Direct Addressing Mode; 16 bits"]},
+  {q:"Intersegment jump is a jump to any memory location within the entire memory system.",a:"True",o:["True","False"]},
+  {q:"This is an example of register Indirect Addressing Mode.",a:"MOV AX, [BX]",o:["MOV CX, AX","MOV AL, FFH","MOV DX, [BX+04]","MOV AX, [BX]"]},
+  {q:"Which one selects the descriptor from a descriptor table?",a:"the selector",o:["the segment register","the TI bit","the selector","the RPL"]},
+  {q:"CS=2000H and IP=1000H. Find the memory address of the next instruction.",a:"21000H",o:["21000H","22000H","2100H","12000H"]},
+  {q:"Real mode memory exists at locations:",a:"00000H-FFFFFH",o:["It depends on the physical capacity of the memory","000000H-FFFFFFH","00000H-FFFFFH","0000000H-FFFFFFFH"]},
+  {q:"One must never use segment registers as data registers because:",a:"They should only contain segment addresses",o:["They should only contain register addresses","They should only contain ending addresses","They should only contain segment addresses","They should only contain indirect addresses"]},
+  {q:"The first 1Mbyte of memory is called the _____ memory system.",a:"both b and c (conventional and real mode)",o:["unreal mode","conventional","real mode","both b and c (conventional and real mode)"]},
+  {q:"In protected mode, a selector value gives the following EXCEPT:",a:"ending address",o:["base address","ending address","access rights byte","none of the choices"]},
+  {q:"Which segment:offset combinations point to a common physical address? a)A1B2:000C b)A1B0:200C c)A1B0:002C d)A1B1:001C",a:"a, c and d",o:["a and b","b and c","a, b and c","a, c and d"]},
+  {q:"Starting and ending address of the segment with register value 1000H?",a:"10000H, 1FFFFH",o:["10FFFH, FFFFFH","10000H, 10FFFH","01000H, 01FFFH","10000H, 1FFFFH"]},
+  {q:"If SI=1000H, what does MOV [SI], BH do?",a:"writes byte of data from BH into memory location 1000H",o:["reads byte of data from memory location 1000H into BH","writes byte of data from BH into memory location 1000H","illegal, only DI can be used between []s","illegal, mixed sizes"]},
+  {q:"80286 could be operated in protected mode but with only _____ for address bus.",a:"24-bit",o:["20-bit","24-bit","32-bit","36-bit"]},
+  {q:"Which register contains the location where the next instruction in the code segment should be fetched?",a:"IP",o:["SP","SI","IP","DI"]},
+  {q:"The instruction MOV AX,[BX] is an example of:",a:"register indirect addressing mode",o:["direct addressing mode","register addressing mode","register relative addressing mode","register indirect addressing mode"]},
+  {q:"For the 80286-Core processors, protected mode memory exists at locations:",a:"000000H-FFFFFFH",o:["000000H-FFFFFFH","0000000H-FFFFFFFH","00000000H-FFFFFFFFH","any location in the entire memory system"]},
+  {q:"In protected mode, protection implemented by restricting access to memory segments through:",a:"both a and b (privilege levels and access rights)",o:["privilege levels","access rights","granularity","both a and b (privilege levels and access rights)"]},
+  {q:"Descriptor: Base=23000000H, Limit=012FFH, G=1. The segment ends at:",a:"242FFFFFH",o:["230012FFH","2300FFFF","242FFFFFH","none of the choices"]},
+  // Second set of numbered questions
+  {q:"_______ is a jump to any memory location within the entire memory system.",a:"Intersegment Jump",o:["Near Jump","Short Jump","Intersegment Jump","Conditional Jump"]},
+  {q:"In protected mode, access to the segment is allowed if:",a:"Both a and b (RPL = DPL and RPL > DPL)",o:["RPL = DPL","RPL > DPL","RPL < DPL","Both a and b (RPL = DPL and RPL > DPL)"]},
+  {q:"_____ moves a byte or word between a memory location and a register.",a:"Register Relative",o:["Register Relative","Register Indirect","Direct","Immediate"]},
+  {q:"_____ moves a byte or word between a register and memory location addressed by an index or base register plus displacement.",a:"Register Relative Addressing",o:["Register Relative Addressing","Based Index Addressing","Register Indirect","Direct Addressing"]},
+  {q:"_____ moves a byte or word between a register and memory location addressed by a base register (BP or BX) plus an index register (DI or SI).",a:"Based Index Addressing",o:["Register Relative Addressing","Based Index Addressing","Register Indirect","Direct Addressing"]},
+  {q:"_____ should be added to the starting address to get the ending address.",a:"Offset",o:["Segment","Base","Offset","Limit"]},
+  {q:"ADD instruction stores 7308H at offset 9F71H. Computed address is 7CB31H. What is the starting address?",a:"72BC0",o:["72BC0","7CB31","72C00","73BC0"]},
+  {q:"DS=0044H. MOV TM[EBP][EDI+ECH],SI in protected mode. Address accessed?",a:"D2D69315",o:["D2D69315","D2D69314","D2D69316","D2D69317"]},
+  {q:"DS=B9DC, SS=F7CA, ES=AB32, AX=DC5, DI=8E9, BX=D98, BP=2CE, SI=97D. MOV CX... destination content?",a:"4FDCH",o:["4FDCH","DC5H","97DH","8E9H"]},
+  {q:"In real mode, which physical address is accessed by segment-offset 0CD1:02E0?",a:"0CFF0H",o:["0CFF0H","00FB1H","0FB10H","None of the choices"]},
+];
+
+const Q3 = [
+  {q:"Given bytes 10001000 00110110 10110111 01101101, what is the MOV mnemonic instruction?",a:"MOV [6DB7H], DH",o:["MOV [6DB7H], DH","MOV DH, [6DB7H]","MOV [B76DH], DH","MOV DH, [B76DH]"]},
+  {q:"This mnemonic sets bit number two of lower base index register after testing.",a:"BTS BL, 2",o:["BTS BL, 2","BTC BL, 2","BTR BL, 2","BT BL, 2"]},
+  {q:"This mnemonic rotates right the destination index register twenty-nine times.",a:"ROR DI, 29",o:["ROR DI, 29","ROL DI, 29","RCR DI, 29","RCL DI, 29"]},
+  {q:"Which instruction performs subtraction without changing the content of the destination?",a:"CMP",o:["SUB","SBB","CMP","DEC"]},
+  {q:"From the given program (starting 2863EH), where is line 3 (MOV SI,[BP+DI]) located?",a:"28643-28644",o:["28641-28642","28643-28644","28645-28646","28647-28648"]},
+  {q:"From the given program (starting 2863EH), where is line 5 (MOV CX,00ABH) located?",a:"28647-28649",o:["28645-28646","28647-28649","2864A-2864B","2864C-2864D"]},
+  {q:"From the given program (starting 2863EH), where is line 8 (MOV [DI],DX) located?",a:"2864E-2864F",o:["2864C-2864D","2864E-2864F","28650-28651","28652-28653"]},
+  {q:"From the given program (starting 2863EH), where is line 14 (JNZ TWO) located?",a:"28657-28658",o:["28655-28656","28657-28658","28659-2865A","2865B-2865C"]},
+  {q:"Hand code of line 1: MOV AX, 1001H?",a:"B80110",o:["B80110","A10110","B91001","8B061001"]},
+  {q:"Hand code of line 3: MOV SI, [BP+DI]?",a:"8B33",o:["8B33","8B38","8B34","8B3B"]},
+  {q:"Hand code of line 4: MOV DI, [BX+SI]?",a:"8B38",o:["8B33","8B38","8B3C","8B3A"]},
+  {q:"Hand code of line 7: SUB DX, [BX+SI]?",a:"2B10H",o:["2B10H","2B11H","2B12H","2B13H"]},
+  {q:"Hand code of line 9: CMP [DI], SI?",a:"3935",o:["3934","3935","3936","3937"]},
+  {q:"Hand code of line 10: JZ ONE?",a:"74EA",o:["74EA","74EB","74EC","74ED"]},
+  {q:"At SP=1000H, after PUSHA instruction, what is SP?",a:"0FF0H",o:["0FF0H","0FF8H","0FE0H","0FF4H"]},
+  {q:"Initially SP=1FF0H, after POPA, what is SP?",a:"2000H",o:["1FF0H","1FF8H","2000H","2008H"]},
+  {q:"MOV BX, 3 will assemble as:",a:"BB 03 00",o:["BB 03 00","8B 03 00","BB 00 03","B8 03 00"]},
+  {q:"Assembly instruction for machine code C7 04 00:",a:"MOV WORD PTR [SI], 0",o:["MOV WORD PTR [SI], 0","MOV [SI], AX","MOV AX, [SI]","MOV BYTE PTR [SI], 0"]},
+  {q:"SHR AL, 5 with C=1 and AL=10111001. Result?",a:"AL = 05H",o:["AL = 05H","AL = 04H","AL = 07H","AL = 03H"]},
+  {q:"ROL AL, 2 with C=1 and AL=10111001. Result?",a:"AL = E6H",o:["AL = E6H","AL = E5H","AL = E7H","AL = E4H"]},
+  {q:"ROR AL, 3 with C=1 and AL=10111001. Result?",a:"AL = 37H",o:["AL = 35H","AL = 37H","AL = 39H","AL = 3BH"]},
+  {q:"SAR AL, 3 with C=1 and AL=10111001. Result?",a:"AL = F7H",o:["AL = F7H","AL = F6H","AL = F8H","AL = 17H"]},
+  {q:"RCR AL, 5 with C=1 and AL=10111001. Result?",a:"9DH",o:["9DH","9EH","9CH","9FH"]},
+  {q:"SHL AL, 3 with C=1 and AL=10111001. Result?",a:"C8H",o:["C8H","C0H","D0H","C4H"]},
+  {q:"SHL AL, 3 with C=1 and AL=00111011. Result?",a:"D8H",o:["D0H","D8H","C8H","E0H"]},
+  {q:"ROL AL, 2 with C=0 and AL=11000111. Result?",a:"1FH",o:["1EH","1FH","3FH","0FH"]},
+  {q:"RCR AL, 5 with C=1 and AL=10101011. Result?",a:"BDH",o:["BCH","BDH","BEH","BFH"]},
+  {q:"ROR AL, 4 with C=1 and AL=10101011. Result?",a:"BAH",o:["B8H","BAH","BCH","BEH"]},
+  {q:"SAR AL, 4 with C=0 and AL=01001101. Result?",a:"04H",o:["04H","05H","06H","07H"]},
+  {q:"SHR AL, 5 with C=1 and AL=10101010. Result?",a:"05H",o:["04H","05H","06H","07H"]},
+  {q:"This mnemonic immediately adds data 0919H with the accumulator and carry.",a:"ADC AX, 0919H",o:["ADC AX, 0919H","ADD AX, 0919H","ADC AX, 919H","ADC AX, 09190H"]},
+  {q:"This mnemonic adds one to the content of a memory location from base index register and source index register.",a:"INC ES:[BX+SI]",o:["INC ES:[BX+SI]","INC [BX+SI]","INC DS:[BX+SI]","ADD ES:[BX+SI], 1"]},
+  {q:"This mnemonic rotates left with carry the low count register content twenty times.",a:"RCL CL, 20",o:["RCL CL, 20","RCL CX, 20","RCL CH, 20","ROL CL, 20"]},
+  {q:"This mnemonic logically adds the content of DX and data at memory location 0919h with segment DS.",a:"OR DX, DS:[0919H]",o:["OR DX, DS:[0919H]","AND DX, DS:[0919H]","OR DX, [0919H]","ADD DX, DS:[0919H]"]},
+  {q:"This mnemonic jumps to memory location ANGAT after addition if there is a carry.",a:"JC ANGAT",o:["JC ANGAT","JZ ANGAT","JNC ANGAT","JO ANGAT"]},
+  {q:"This mnemonic logically multiplies BX with data at address FC45H with data segment.",a:"AND BX, [FC45H]",o:["AND BX, [FC45H]","OR BX, [FC45H]","XOR BX, [FC45H]","AND BX, DS:[FC45H]"]},
+  {q:"This mnemonic immediately adds data 0929H with the count register.",a:"ADC CX, [0929H]",o:["ADC CX, [0929H]","ADC CX, 0929H","ADD CX, 0929H","ADC CX, 929H"]},
+  {q:"This mnemonic subtracts one from memory addressed by DI+BP.",a:"DEC ES:[DI+BP]",o:["DEC ES:[DI+BP]","DEC [DI+BP]","SUB ES:[DI+BP], 1","DEC SS:[DI+BP]"]},
+  {q:"This mnemonic subtracts with borrow the data addressed by SI from the higher base index register.",a:"SBB BH, [SI]",o:["SBB BH, [SI]","SUB BH, [SI]","SBB BL, [SI]","SBB BH, SI"]},
+  {q:"This mnemonic complements the content of the lower base index register.",a:"NOT BL",o:["NOT BL","NOT BH","NEG BL","XOR BL, FFH"]},
+  {q:"In real mode, physical address accessed by segment-offset 0CD1:02E0?",a:"0CFF0H",o:["0CFF0H","00FB1H","0FB10H","None of the choices"]},
+  {q:"The 100010dw mmreg r/m template should be used for converting assembly to machine code EXCEPT:",a:"MOV ES, AX",o:["MOV ES, AX","MOV AL, BL","MOV AX, BX","MOV CL, DH"]},
+  {q:"In the RCL instruction, the contents undergo function as:",a:"Carry flag is pushed into LSB & MSB is pushed into the carry flag",o:["MSB is pushed into LSB & LSB is pushed into carry","Carry flag is pushed into LSB & MSB is pushed into the carry flag","LSB is pushed into carry & MSB is discarded","Carry flag replaces MSB & LSB replaces carry"]},
+  {q:"Program control transfer instructions are instructions for the transfer of data from memory to register, etc.",a:"False",o:["True","False"]},
+  {q:"The ___ selects the operation (addition, subtraction, move, etc.) performed by the microprocessor.",a:"Opcode",o:["Opcode","Instruction Register","Program Counter","Control Unit"]},
+  {q:"The instruction that performs logical AND operation where the result is NOT stored in the destination.",a:"TEST",o:["AND","TEST","CMP","OR"]},
+  {q:"Which segment:offset combinations point to a common physical memory address? a)A1B2:000C b)A1B0:200C c)A1B0:002C d)A1B1:001C",a:"a, c, and d",o:["a and b","b and c","a, b and c","a, c, and d"]},
+  {q:"MOV AX,0FEEDh then AND AX,0F00Dh. What is AX?",a:"AX = F00Dh",o:["AX = 0FEEDh","AX = F00Dh","AX = 0000h","AX = 0F00h"]},
+  {q:"Starting and ending address of segment with register value 1000H?",a:"10000H, 1FFFFH",o:["10FFFH, FFFFFH","10000H, 10FFFH","01000H, 01FFFH","10000H, 1FFFFH"]},
+  {q:"If instruction is MOV BL,DS:[1234H], the code for R/M = ?",a:"110",o:["110","010","100","000"]},
+  {q:"If instruction is MOV CL,DS:[1234H], the code for mm = ?",a:"00",o:["00","01","10","11"]},
+  {q:"For MOV CL, CH, what is the code in the REG field when assembled?",a:"001",o:["001","010","011","100"]},
+  {q:"80286 in protected mode has only _____ for address bus.",a:"24-bit",o:["20-bit","24-bit","32-bit","36-bit"]},
+  {q:"MOV BL,DS:[1234H] will assemble as a _____ instruction.",a:"4-byte",o:["2-byte","3-byte","4-byte","5-byte"]},
+  {q:"If direction bit D=1, data flows ___ the register REG field ___ the R/M field.",a:"to, from",o:["to, from","from, to","to, to","from, from"]},
+  {q:"Final content of AX after the full program: 102B–8E+(16*8)+(8–94/45)–(40/8)?",a:"AX = 104BH",o:["AX = 104BH","AX = 104CH","AX = 104AH","AX = 104DH"]},
+  {q:"Final content of BX after the full program?",a:"BX = 0096H",o:["BX = 0096H","BX = 0095H","BX = 0097H","BX = 0098H"]},
+  {q:"Final content of DX after the full program?",a:"DX = 00B0H",o:["DX = 00B0H","DX = 00AFH","DX = 00B1H","DX = 00B2H"]},
+  {q:"Final content of the stack after the full program?",a:"STACK = EMPTY",o:["STACK = EMPTY","STACK has 104BH","STACK has 0096H","STACK has 00B0H"]},
+  {q:"Displacement in line 14 (JNZ TWO) of the given program?",a:"F3",o:["F3","F2","EA","F4"]},
+  {q:"Missing instruction (1): MOV AL, 16h; ___(1); MUL BL",a:"MOV BL, 08H",o:["MOV BL, 08H","MOV BL, 16H","MOV BH, 08H","MOV CL, 08H"]},
+  {q:"Missing instruction (2): XOR AX,AX; ___(2); MOV BL,45h",a:"MOV AX, 0094H",o:["MOV AX, 0094H","MOV AX, 0045H","MOV AX, 0094h","MOV AX, 94H"]},
+  {q:"Missing instruction (3): MOV BL,45h; ___(3) [obtain the quotient]",a:"DIV BL",o:["DIV BL","DIV AX","IDIV BL","DIV CL"]},
+  {q:"Missing instruction (4): ___(4) [transfer the quotient to DL register]",a:"MOV DL, AL",o:["MOV DL, AL","MOV DL, AH","MOV DX, AX","MOV DL, BL"]},
+  {q:"Missing instruction (5): SUB AL,DL; ___(5) [clear the content of AH]",a:"MOV AH, 00H",o:["MOV AH, 00H","XOR AH, AH","AND AH, 00H","CLR AH"]},
+  {q:"Missing instruction (6): ADD AX,DX; PUSH AX; XOR AX,AX; ___(6) [read stored value from stack to DX]",a:"POP DX",o:["POP DX","MOV DX, AX","POP AX","XCHG AX, DX"]},
+  {q:"Missing instruction (7): XOR AX,AX; ___(7); MOV BL,8h",a:"MOV AX, 0040H",o:["MOV AX, 0040H","MOV AX, 40H","MOV AX, 0080H","MOV AX, 0048H"]},
+  {q:"Missing instruction (8): DIV BL; ___(8) [add the quotient and 8Eh]",a:"ADD AL, 8EH",o:["ADD AL, 8EH","ADD AX, 8EH","ADD AL, 8Fh","ADC AL, 8EH"]},
+  {q:"Missing instruction (9): ADD AL,8EH; ___(9) [copy the sum to BL]",a:"MOV BL, AL",o:["MOV BL, AL","MOV BL, AH","XCHG BL, AL","MOV CL, AL"]},
+  {q:"Missing instruction (10): POP AX; MOV BH,0h; ___(10) [subtract BX from AX]",a:"SUB AX, BX",o:["SUB AX, BX","SUB AX, BL","SBB AX, BX","SUB AX, BH"]},
+  {q:"In unsigned division of DX:AX by a word in CX, the quotient is placed in:",a:"AX",o:["AX","DX","BX","CX"]},
+  {q:"In unsigned division of DX:AX by a word in CX, the remainder is placed in:",a:"DX",o:["AX","DX","BX","CX"]},
+  {q:"_____ is a utility program that converts assembly language into machine language.",a:"Assembler",o:["Assembler","Compiler","Linker","Interpreter"]},
+  {q:"Convert ADC BX, DX to machine code.",a:"13DA",o:["13DA","11DA","13DB","11DB"]},
+  {q:"Convert AND AL, 0FCH to machine code.",a:"24FC",o:["24FC","20FC","24FD","25FC"]},
+  {q:"Convert POP BP to machine code.",a:"5D",o:["5D","5C","5E","5F"]},
+  {q:"Convert machine code 8CD0H to assembly language.",a:"MOV AX, SS",o:["MOV AX, SS","MOV SS, AX","MOV AX, DS","MOV DS, AX"]},
+  {q:"MOV BL,04Fh then ADD BL,0B1H — the execution results in ZF=0. True or False?",a:"False",o:["True","False"]},
+  {q:"In calculating the target address, a displacement is added to the contents of register:",a:"IP",o:["IP","SP","BP","AX"]},
+  {q:"In unsigned division of AX by a byte in DATA2, the quotient is placed in:",a:"AL",o:["AL","AH","AX","BL"]},
+  {q:"In unsigned division of AX by a byte in DATA2, the remainder is placed in:",a:"AH",o:["AL","AH","DX","BX"]},
+  {q:"In unsigned multiplication of AX with BX, the product is placed in:",a:"DX:AX",o:["AX","DX","DX:AX","BX:AX"]},
+  {q:"In unsigned multiplication of CX with a byte in AL, the product is placed in both AX and DX registers.",a:"False",o:["True","False"]},
+  {q:"It is a general purpose instruction to transfer byte or word from register to register, memory to register, etc.",a:"MOV Instruction",o:["MOV Instruction","ADD Instruction","XCHG Instruction","PUSH Instruction"]},
+  {q:"These instructions are used to perform rotate operations, EXCEPT:",a:"REP",o:["ROL","ROR","RCL","REP"]},
+  {q:"Which of the following is NOT a data copy/transfer function?",a:"DAS",o:["MOV","XCHG","PUSH","DAS"]},
+  {q:"CS=2001H and IP=007CH. Which physical memory location is accessed?",a:"2008CH",o:["2008CH","20010H","3000FH","2007DH"]},
+  {q:"CS=2000H and IP=1000H. Find the memory address of the next instruction.",a:"21000H",o:["21000H","22000H","2100H","12000H"]},
+  {q:"If SI=1000H, what does MOV [SI], BH do?",a:"Writes byte of data from BH into memory location 1000H",o:["Reads byte of data from memory location 1000H into BH","Writes byte of data from BH into memory location 1000H","illegal, only DI can be used between []s","illegal, mixed sizes"]},
+  {q:"Descriptor: Base=23000000H, Limit=012FFH, G=1. Segment ends at:",a:"242FFFFFH",o:["230012FFH","2300FFFF","242FFFFFH","none of the choices"]},
+  {q:"If the MOD field contains 00,01, or 10 and R/M Code is 001, the addressing mode is:",a:"DS:[BX+DI]",o:["DS:[BX+DI]","SS:[BP+DI]","DS:[SI]","DS:[BX+SI]"]},
+  {q:"In a CMP operation, the result of comparison is stored in:",a:"Nowhere",o:["Accumulator","Nowhere","Flag register only","Destination operand"]},
+  {q:"In protected mode, a selector value gives the following segment information EXCEPT:",a:"Ending Address",o:["Base address","Ending Address","Access rights byte","None of the choices"]},
+  {q:"In protected mode, protection implemented by restricting access to memory segments through:",a:"both a and b (privilege levels and access rights)",o:["privilege levels","access rights","granularity","both a and b (privilege levels and access rights)"]},
+  {q:"In protected mode, access to the segment is allowed if:",a:"both a and b (RPL = DPL and RPL > DPL)",o:["RPL = DPL","RPL > DPL","RPL < DPL","both a and b (RPL = DPL and RPL > DPL)"]},
+  {q:"It is used to examine the state of individual bits, or groups of bits.",a:"Test",o:["CMP","AND","Test","OR"]},
+  {q:"The flag that acts as Borrow flag in the SBB instruction is:",a:"Carry Flag",o:["Carry Flag","Sign Flag","Overflow Flag","Auxiliary Flag"]},
+  {q:"The instruction MOV [BP],DL will assemble with mm/mod=",a:"01",o:["00","01","10","11"]},
+  {q:"To compare source and destination operands, CMP instruction performs _____ between the operands.",a:"Subtraction",o:["Addition","Subtraction","AND operation","XOR operation"]},
+  {q:"32-bit microprocessors in protected mode could address up to _____ of memory.",a:"4GB",o:["1GB","640MB","4GB","16GB"]},
+  {q:"MOV AX, 11001100b then XOR AX, 0CH. What is AX?",a:"AX = 000Ch",o:["AX = 000Ch","AX = 11C0h","AX = 00CCh","AX = CCCCh"]},
+  {q:"One must never use segment registers as data registers because:",a:"They should only contain segment addresses",o:["They should only contain register addresses","They should only contain ending addresses","They should only contain segment addresses","They should only contain indirect addresses"]},
+  {q:"This instruction inverts the carry flag.",a:"CMC",o:["CMC","STC","CLC","NOP"]},
+  {q:"This group of instructions is used to shift or rotate bits left or right in register or memory operands.",a:"Bit Manipulation Instructions",o:["Bit Manipulation Instructions","Data Transfer Instructions","Arithmetic Instructions","Program Transfer Instructions"]},
+  {q:"Given bytes C6 69 A6 CC E5 B9, determine the mnemonic MOV instruction.",a:"MOV DS:[BX+DI+A6H], E5H",o:["MOV DS:[BX+DI+A6H], E5H","MOV [BX+DI+A6H], E5H","MOV DS:[BX+SI+A6H], E5H","MOV ES:[BX+DI+A6H], E5H"]},
+  {q:"ROR AL, 7 with AL=11011001, C=1. Final content of AL?",a:"AL = B3H",o:["AL = B3H","AL = B1H","AL = B5H","AL = B7H"]},
+  {q:"RCL AL, 3 with AL=10011101, C=1. Final content of AL?",a:"AL = EEH",o:["AL = EEH","AL = ECH","AL = F0H","AL = E8H"]},
+  {q:"SHL AL, 4 with AL=01111101, C=1. Final content of AL?",a:"AL = D0H",o:["AL = D0H","AL = C0H","AL = E0H","AL = F0H"]},
+  {q:"SAR AL, 6 with AL=11011101, C=1. Final content of AL?",a:"FFH",o:["FFH","FEH","80H","C0H"]},
+];
+
+// ── STATE ──────────────────────────────────────────────────────
+const QUIZZES=[{label:"Quiz 1",qs:Q1},{label:"Quiz 2",qs:Q2},{label:"Quiz 3",qs:Q3}];
+let sel=new Set(),doRand=false;
+let questions=[],cur=0,score=0;
+// results[i] = { shuffledOpts, chosen, correct }
+let results=[];
+
+// ── SELECTOR ──────────────────────────────────────────────────
+document.getElementById('cnt1').textContent=Q1.length+' questions';
+document.getElementById('cnt2').textContent=Q2.length+' questions';
+document.getElementById('cnt3').textContent=Q3.length+' questions';
+
+function toggleCard(n){
+  if(sel.has(n))sel.delete(n);else sel.add(n);
+  [1,2,3].forEach(i=>document.getElementById('c'+i).classList.toggle('sel',sel.has(i)));
+  document.getElementById('startBtn').disabled=sel.size===0;
+  document.getElementById('togAll').classList.toggle('on',sel.size===3);
+}
+function toggleRand(){doRand=!doRand;document.getElementById('togRand').classList.toggle('on',doRand);}
+function selectAll(){
+  if(sel.size===3){sel.clear();}else{sel.add(1);sel.add(2);sel.add(3);}
+  [1,2,3].forEach(i=>document.getElementById('c'+i).classList.toggle('sel',sel.has(i)));
+  document.getElementById('startBtn').disabled=sel.size===0;
+  document.getElementById('togAll').classList.toggle('on',sel.size===3);
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startQuiz(){
+  questions=[];
+  sel.forEach(n=>QUIZZES[n-1].qs.forEach(q=>questions.push({...q,source:'Quiz '+n})));
+  if(doRand)shuffle(questions);
+  // pre-generate shuffled options for each question
+  results=questions.map(q=>{
+    const opts=doRand?shuffle([...q.o]):[...q.o];
+    return{shuffledOpts:opts,chosen:null,correct:false};
+  });
+  cur=0;score=0;
+  showQ();
+  show('quiz');
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function goSel(){show('sel');}
+
+function showQ(){
+  const total=questions.length;
+  const q=questions[cur];
+  const r=results[cur];
+
+  // progress
+  const answered=results.filter(x=>x.chosen!==null).length;
+  document.getElementById('pbar').style.width=(answered/total*100)+'%';
+  document.getElementById('qnum').innerHTML='<strong>'+(cur+1)+'</strong>/'+total;
+
+  // breadcrumb
+  buildBreadcrumb();
+
+  document.getElementById('qsrc').textContent=q.source.toUpperCase();
+  document.getElementById('qtxt').textContent=q.q;
+
+  const keys=['A','B','C','D','E'];
+  const list=document.getElementById('optlist');
+  list.innerHTML='';
+
+  const isPast=r.chosen!==null;
+
+  r.shuffledOpts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt';
+    btn.innerHTML=`<span class="opt-k">${keys[i]}</span><span>${o}</span>`;
+
+    if(isPast){
+      btn.disabled=true;
+      if(o===q.a) btn.classList.add('past-correct');
+      if(o===r.chosen && o!==q.a) btn.classList.add('past-wrong');
+    } else {
+      btn.onclick=()=>pick(btn,o,q.a);
+    }
+    list.appendChild(btn);
+  });
+
+  // feedback
+  const fb=document.getElementById('fb');
+  if(isPast){
+    fb.className='fb show '+(r.correct?'ok':'bad');
+    fb.innerHTML=r.correct?'Correct!':'Incorrect. <span class="ans">Correct answer: '+q.a+'</span>';
+  } else {
+    fb.className='fb';fb.innerHTML='';
+  }
+
+  // nav
+  document.getElementById('prevBtn').disabled=cur===0;
+  const nb=document.getElementById('nextBtn');
+  if(isPast){
+    nb.style.display='inline-block';
+    nb.textContent=cur+1<total?'Next →':'See results →';
+  } else {
+    nb.style.display='none';
+  }
+  document.getElementById('autonote').textContent=(!isPast)?'Correct answers auto-advance':'';
+}
+
+function buildBreadcrumb(){
+  const bc=document.getElementById('breadcrumb');
+  bc.innerHTML='';
+  questions.forEach((_,i)=>{
+    const r=results[i];
+    const d=document.createElement('button');
+    d.className='bdot';
+    d.textContent=i+1;
+    d.title='Question '+(i+1);
+    if(i===cur) d.classList.add('current');
+    else if(r.chosen!==null && r.correct) d.classList.add('done-c');
+    else if(r.chosen!==null && !r.correct) d.classList.add('done-w');
+    d.onclick=()=>jumpTo(i);
+    bc.appendChild(d);
+  });
+}
+
+function jumpTo(i){cur=i;showQ();}
+
+function pick(btn,chosen,correct){
+  const r=results[cur];
+  if(r.chosen!==null)return;
+  r.chosen=chosen;
+  r.correct=chosen===correct;
+  if(r.correct)score++;
+
+  // mark options
+  document.querySelectorAll('.opt').forEach(b=>{
+    const txt=b.querySelector('span:last-child').textContent;
+    b.disabled=true;
+    if(txt===correct) b.classList.add('correct');
+    if(txt===chosen && txt!==correct) b.classList.add('wrong');
+  });
+
+  const fb=document.getElementById('fb');
+  if(r.correct){
+    fb.className='fb show ok';fb.textContent='Correct!';
+    // auto-advance after short delay
+    setTimeout(()=>{
+      const total=questions.length;
+      if(cur+1<total){cur++;showQ();}
+      else{showResults();}
+    },700);
+  } else {
+    fb.className='fb show bad';
+    fb.innerHTML='Incorrect. <span class="ans">Correct answer: '+correct+'</span>';
+    const nb=document.getElementById('nextBtn');
+    nb.style.display='inline-block';
+    nb.textContent=cur+1<questions.length?'Next →':'See results →';
+  }
+  buildBreadcrumb();
+}
+
+function goPrev(){if(cur>0){cur--;showQ();}}
+function goNext(){
+  const total=questions.length;
+  if(cur+1<total){cur++;showQ();}
+  else{showResults();}
+}
+
+function showResults(){
+  const total=questions.length;
+  const pct=Math.round(score/total*100);
+  document.getElementById('sn').textContent=score;
+  document.getElementById('sd').textContent='/ '+total;
+  document.getElementById('rt').textContent=pct>=75?'Passed!':pct>=50?'Keep studying!':'Needs more review';
+  document.getElementById('rs').textContent=pct+'% — '+score+' of '+total+' correct';
+  document.getElementById('ss1').textContent=score;
+  document.getElementById('ss2').textContent=total-score;
+  document.getElementById('ss3').textContent=pct+'%';
+  show('res');
+}
+
+function restartSame(){
+  results=questions.map(q=>{
+    const opts=doRand?shuffle([...q.o]):[...q.o];
+    return{shuffledOpts:opts,chosen:null,correct:false};
+  });
+  if(doRand)shuffle(questions);
+  cur=0;score=0;
+  showQ();show('quiz');
+}
+</script>
+</body>
+</html>

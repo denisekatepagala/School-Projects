@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MindSpore Transfer Learning Quiz</title>
+<style>
+body{font-family:Arial;margin:20px;max-width:1000px}
+.question{border:1px solid #ccc;padding:12px;margin:10px 0;border-radius:8px}
+.correct{color:green}.wrong{color:red}
+button{padding:10px 20px;font-size:16px}
+</style>
+</head>
+<body>
+<h1>MindSpore Transfer Learning Quiz (40 Items)</h1>
+<p>Select all answers that apply. Some questions have multiple correct answers.</p>
+<div id="quiz"></div>
+<button onclick="gradeQuiz()">Submit</button>
+<h2 id="score"></h2>
+<script>
+const quizData = [
+{q:"1. What does a custom dataset mean in transfer learning?",o:["Original pre-trained dataset","New target dataset for the task","Validation dataset only","Test dataset only"],a:["New target dataset for the task"]},
+{q:"2. Valid Conv layer definitions?",o:["nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3)","nn.Conv2d(3,64,3)","nn.Conv1d(in_channels=3, out_channels=64, kernel_size=3)","nn.Conv2d(kernel_size=3, out_channels=64, in_channels=3)"],a:["nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3)","nn.Conv2d(3,64,3)","nn.Conv1d(in_channels=3, out_channels=64, kernel_size=3)","nn.Conv2d(kernel_size=3, out_channels=64, in_channels=3)"]},
+{q:"3. Fine-tuning characteristic?",o:["Only input modified","Top layers get unfrozen and fine-tuned","All layers frozen","Only output changed"],a:["Top layers get unfrozen and fine-tuned"]},
+{q:"4. MindSpore APIs commonly used?",o:["Dataset API","nn Module","Model API","Flet Framework"],a:["Dataset API","nn Module","Model API"]},
+{q:"5. Fine-tuning vs feature extraction?",o:["Unfreezes/trains top layers","Freezes all layers","Trains all layers","No difference"],a:["Unfreezes/trains top layers"]},
+{q:"6. Example working architecture?",o:["Custom dataset","Custom final layer","EfficientNet pre-trained on ImageNet","ImageNet"],a:["EfficientNet pre-trained on ImageNet"]},
+{q:"7. Characteristics of custom dataset?",o:["10 classes of food","Original pretrained dataset","Used for training new layers","Specific data for new task"],a:["10 classes of food","Used for training new layers","Specific data for new task"]},
+{q:"8. Purpose of convolution layer?",o:["Generate data","Reduce dimensionality","Classify data","Extract features"],a:["Extract features"]},
+{q:"9. Primary change in feature extraction?",o:["Multiple layers unfrozen","Input changed","Full retrain","Custom final layer trained"],a:["Custom final layer trained"]},
+{q:"10. Components involved in transfer learning?",o:["Training custom final layer","Pretrained architecture","Rebuilding from scratch","Custom dataset"],a:["Training custom final layer","Pretrained architecture","Custom dataset"]},
+{q:"11. Effect of stride?",o:["Adds channels","Specifies filter step size","Increases kernel size","Normalizes output"],a:["Specifies filter step size"]},
+{q:"12. Fine-tuning a GAN?",o:["Train new layers then gradually unfreeze","Freeze all","Train discriminator only","Train generator only"],a:["Train new layers then gradually unfreeze"]},
+{q:"13. Bottom layers during fine-tuning?",o:["Deleted","Always frozen","Might change","Become output"],a:["Might change"]},
+{q:"14. Flet UI to FastAPI protocol?",o:["RESET","FTP","WebSockets","SMTP"],a:["RESET"]},
+{q:"15. Correct MNIST import?",o:["from mindspore.models import MNIST","import MnistDataset from mindspore","import mindspore.MNIST","from mindspore.dataset import MnistDataset"],a:["from mindspore.dataset import MnistDataset"]},
+{q:"16. Purpose of MnistDataset?",o:["Deploy model","Loss function","CNN definition","Load & preprocess data"],a:["Load & preprocess data"]},
+{q:"17. Improve NLP performance?",o:["Pretrained word embedding","Increasing CNN layers","Data augmentation","GAN fine-tuning"],a:["Pretrained word embedding","Data augmentation"]},
+{q:"18. Bottom layers in feature extraction?",o:["Retrained","Removed","Stay frozen","Randomized"],a:["Stay frozen"]},
+{q:"19. APIs for network components?",o:["Dataset API","nn.Cell","nn.Conv2d","Model API"],a:["nn.Cell"]},
+{q:"20. Feature extraction states?",o:["Custom final layer trained","Layer 235 same","Bottom layers same","Top layers unfrozen"],a:["Custom final layer trained","Layer 235 same","Bottom layers same"]},
+{q:"21. GAN fine-tuning challenge?",o:["Forgetting","Overfitting","Instability","All of the above"],a:["All of the above"]},
+{q:"22. Adapted by retraining its ____.",o:["Input layer","Hidden layers","Final layer","Dataset"],a:["Final layer"]},
+{q:"23. Top layers in fine-tuning?",o:["Removed","Frozen","Unfrozen and fine-tuned","Ignored"],a:["Unfrozen and fine-tuned"]},
+{q:"24. NLP tasks?",o:["Machine translation","Sentiment analysis","Text classification","Image recognition"],a:["Machine translation","Sentiment analysis","Text classification"]},
+{q:"25. CNN training components?",o:["MobileNetV2","CrossEntropyLoss","Flet UI","Adam optimizer"],a:["CrossEntropyLoss","Adam optimizer"]},
+{q:"26. Layer 235 stays the same means?",o:["Frozen","Unfrozen","Removed","Retrained"],a:["Frozen"]},
+{q:"27. Data requirement?",o:["Less data","More data","Same amount","No data"],a:["More data"]},
+{q:"28. Purpose of tokenization?",o:["Compress text","Convert text into numerical representations","Generate text","Translate text"],a:["Convert text into numerical representations"]},
+{q:"29. Benefit of GAN transfer learning?",o:["Eliminate discriminator","Prevent mode collapse","Always improve quality","Reduce data needed"],a:["Reduce data needed"]},
+{q:"30. Familiarity with ____ API required.",o:["dataset","nn","GAN","FastAPI"],a:["nn"]},
+{q:"31. Purpose of padding?",o:["Add zeros around input","Increase channels","Normalize output","Reduce classes"],a:["Add zeros around input"]},
+{q:"32. Parts changing during fine-tuning?",o:["Input layer","Top layers","Layer 2","Layer234"],a:["Top layers","Layer 2","Layer234"]},
+{q:"33. True about fine-tuning?",o:["Top layers unfrozen","Requires more data","Bottom layers may stay frozen","Only input modified"],a:["Top layers unfrozen","Requires more data","Bottom layers may stay frozen"]},
+{q:"34. Main advantage of transfer learning?",o:["Reduces data requirements","Eliminates training","Creates datasets","Increases hardware"],a:["Reduces data requirements"]},
+{q:"35. Layer 234 changes means?",o:["Untrained","Frozen","Removed","Unfrozen"],a:["Unfrozen"]},
+{q:"36. Embedding layer role?",o:["Store datasets","Represent words as dense vectors","Train CNNs","Classify images"],a:["Represent words as dense vectors"]},
+{q:"37. Why fine-tune GANs?",o:["Adapt to new dataset","Remove discriminator","Increase image size","Reduce classes"],a:["Adapt to new dataset"]},
+{q:"38. True about feature extraction?",o:["Custom final layer trained","Bottom layers frozen","Entire model retrained","Top layers unfrozen"],a:["Custom final layer trained","Bottom layers frozen"]},
+{q:"39. Text dataset API?",o:["CIFAR10","ImageFolder","MNIST","TextFileDataset"],a:["TextFileDataset"]},
+{q:"40. Benefits of ImageNet pretrained architecture?",o:["Avoid training from scratch","Strong learned features","Helps train custom final layer","Reduces required data"],a:["Avoid training from scratch","Strong learned features","Helps train custom final layer","Reduces required data"]},
+{q:"41. Dont answer",o:["Reduces amount of data = transfer learning","Process of transfer learning = pretrained","Network Components = nn.Cell"],a:["Reduces amount of data = transfer learning","Process of transfer learning = pretrained","Network Components = nn.Cell"]}];
+
+function eq(a,b){a=[...a].sort();b=[...b].sort();return JSON.stringify(a)==JSON.stringify(b)}
+const qdiv=document.getElementById('quiz');
+quizData.forEach((q,i)=>{
+ let h=`<div class='question'><b>${q.q}</b><br>`;
+ q.o.forEach(op=>h+=`<label><input type='checkbox' name='q${i}' value="${op}"> ${op}</label><br>`);
+ h+=`<div id='f${i}'></div></div>`;
+ qdiv.innerHTML+=h;
+});
+function gradeQuiz(){
+ let score=0;
+ quizData.forEach((q,i)=>{
+  let sel=[...document.querySelectorAll(`input[name=q${i}]:checked`)].map(x=>x.value);
+  let f=document.getElementById('f'+i);
+  if(eq(sel,q.a)){score++;f.innerHTML="<span class='correct'>Correct</span>";}
+  else{f.innerHTML="<span class='wrong'>Incorrect. Answer: "+q.a.join(", ")+"</span>";}
+ });
+ document.getElementById('score').innerText=`Score: ${score}/41`;
+}
+</script>
+</body>
+</html>
