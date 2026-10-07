@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPE179P Edge AI & TinyML Quiz & Reviewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              500: '#0284c7',
+              600: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars and transitions */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .badge-chip { transition: all 0.2s ease; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col selection:bg-sky-500 selection:text-white">
+
+  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/20 font-mono font-bold text-lg text-white">
+          AI
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            CPE179P Study Suite
+            <span class="text-xs px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30 font-medium">60 Questions</span>
+          </h1>
+          <p class="text-xs text-slate-400">Edge AI • Containerization • TinyML • MLOps</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center gap-2 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
+        <button id="tabQuizBtn" onclick="switchTab('quiz')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-sky-500 text-white shadow-sm flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          Practice Quiz
+        </button>
+        <button id="tabReviewerBtn" onclick="switchTab('reviewer')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/60 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Reviewer Sheet
+        </button>
+      </div>
+
+      <!-- Live Score Badge (Active in Quiz Mode) -->
+      <div id="quizScorePanel" class="flex items-center gap-3">
+        <div class="text-right">
+          <div class="text-xs text-slate-400">Score & Mastery</div>
+          <div class="font-mono text-sm font-bold">
+            <span id="scoreDisplay" class="text-emerald-400">0</span> / <span id="attemptedDisplay" class="text-slate-300">0</span>
+            <span id="pctDisplay" class="text-xs text-sky-400 ml-1">(0%)</span>
+          </div>
+        </div>
+        <button onclick="resetQuizProgress()" title="Reset All Answers" class="p-2 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 border border-slate-700 text-slate-400 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="quickNavContainer" class="bg-slate-900 border-b border-slate-800/80 px-4 py-2.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 overflow-hidden">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 shrink-0 hidden sm:inline">Jump To:</span>
+      <div id="navBadgesList" class="flex gap-1.5 overflow-x-auto py-1 w-full text-xs font-mono no-scrollbar">
+        <!-- Rendered dynamically 1 to 60 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- TAB 1: PRACTICE QUIZ VIEW -->
+    <section id="quizTab" class="space-y-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            Practice Mode
+            <span class="text-xs font-normal text-slate-400">Interactive testing with instant feedback</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Click choices for single-answer questions; use the "Check Answer" button on multi-select questions.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="revealAllAnswers()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition">
+            Auto-Answer All
+          </button>
+          <button onclick="resetQuizProgress()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 transition">
+            Clear Progress
+          </button>
+        </div>
+      </div>
+
+      <!-- Question Cards Grid -->
+      <div id="quizCardsContainer" class="space-y-5">
+        <!-- Cards rendered via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2: REVIEWER CHEAT SHEET VIEW -->
+    <section id="reviewerTab" class="hidden space-y-6">
+      <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-lg space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              Comprehensive Reviewer
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">100% Verified Solutions</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Directly study questions, correct answers, and essential edge engineering rationales.</p>
+          </div>
+          <!-- Search & Filter Bar -->
+          <div class="relative w-full md:w-80">
+            <input type="text" id="reviewerSearch" oninput="filterReviewer()" placeholder="Filter keywords (e.g., Docker, TinyML, SGX)..." 
+              class="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition">
+            <svg class="w-4 h-4 absolute left-3 top-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviewer Items Accordion / List -->
+      <div id="reviewerListContainer" class="space-y-3.5">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toastMessage" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-xl bg-slate-800 text-slate-100 border border-slate-700 shadow-2xl text-sm flex items-center gap-2 transition-all duration-300">
+    <span id="toastIcon">✨</span>
+    <span id="toastText">Action completed</span>
+  </div>
+
+  <script>
+    const QUESTIONS_DATA = [
+      {
+        id: 1,
+        text: "Privacy-preserving edge local training: ______",
+        type: "single",
+        options: ["Federated", "Centralized", "Cloud-native", "Transfer"],
+        answer: ["Federated"],
+        explanation: "Federated Learning keeps raw telemetry/dataset localized on the client edge device and only transmits gradients/weights to the parameter aggregator."
+      },
+      {
+        id: 2,
+        text: "Docker file excluding build logs: ______",
+        type: "single",
+        options: [".dockerignore", ".gitignore", "docker.env", "Dockerfile.ignore"],
+        answer: [".dockerignore"],
+        explanation: ".dockerignore excludes non-essential runtime artifacts from the build context sent to the Docker daemon, decreasing build time and image size."
+      },
+      {
+        id: 3,
+        text: "Docker Compose multi-container directives?",
+        type: "multi",
+        options: [
+          "A. ports: to map container ports to host network interfaces",
+          "B. compile_cuda: to rewrite Python source code into C++",
+          "C. volumes: to persist data or mount local model directories"
+        ],
+        answer: [0, 2],
+        explanation: "ports (A) maps inbound networking, and volumes (C) persists data and mounts models. compile_cuda is not a valid Docker Compose directive."
+      },
+      {
+        id: 4,
+        text: "Remote edge API security pattern?",
+        type: "single",
+        options: [
+          "A. Store cleartext API keys directly in public version control repositories.",
+          "B. Disable all container network isolation and execute the service with full root host privileges.",
+          "C. Expose port 8000 directly to the public Internet with default administrative credentials.",
+          "D. Place a reverse proxy (e.g., Nginx) enforcing TLS/SSL encryption, rate limiting, and token authentication in front of the containerized API."
+        ],
+        answer: ["D. Place a reverse proxy (e.g., Nginx) enforcing TLS/SSL encryption, rate limiting, and token authentication in front of the containerized API."],
+        explanation: "A reverse proxy acts as an encrypted gateway managing SSL termination, token authentication, and rate limiting against external attacks."
+      },
+      {
+        id: 5,
+        text: "Attack injecting bad sensor data?",
+        type: "single",
+        options: [
+          "A. Data Poisoning",
+          "B. Model Extraction",
+          "C. Secure Boot Bypass",
+          "D. Differential Privacy"
+        ],
+        answer: ["A. Data Poisoning"],
+        explanation: "Data Poisoning injects tainted or adversarial sensor training inputs to deliberately alter decision boundaries."
+      },
+      {
+        id: 6,
+        text: "Cross-platform edge runtime engine: ______",
+        type: "single",
+        options: ["ONNX", "TensorRT", "CUDA", "PyTorch"],
+        answer: ["ONNX"],
+        explanation: "ONNX (Open Neural Network Exchange) Runtime provides hardware-agnostic runtime execution across varied edge accelerators."
+      },
+      {
+        id: 7,
+        text: "Platforms used for TinyML?",
+        type: "multi",
+        options: [
+          "A. ARM Cortex-M microcontrollers",
+          "B. High-performance NVIDIA H100 GPU clusters",
+          "C. ESP32 microcontrollers",
+          "D. RISC-V embedded microcontrollers"
+        ],
+        answer: [0, 2, 3],
+        explanation: "ARM Cortex-M, ESP32, and RISC-V are true microcontrollers suited for TinyML. NVIDIA H100 clusters are enterprise cloud accelerators."
+      },
+      {
+        id: 8,
+        text: "Threats targeting Edge AI systems?",
+        type: "multi",
+        options: [
+          "A. Automatic hardware overclocking by Docker base images",
+          "B. Model extraction / stealing attacks via API querying",
+          "C. Data poisoning attacks during local training",
+          "D. Adversarial example perturbation attacks"
+        ],
+        answer: [1, 2, 3],
+        explanation: "B, C, and D are classical AI security vulnerabilities (theft, poisoning, and adversarial attacks). Option A is fictitious."
+      },
+      {
+        id: 9,
+        text: "Dockerfile directive exposing network ports?",
+        type: "single",
+        options: [
+          "A. IMPORT PORT",
+          "B. HOSTPORT 8000",
+          "C. RUN expose_port",
+          "D. EXPOSE 8000"
+        ],
+        answer: ["D. EXPOSE 8000"],
+        explanation: "EXPOSE informs Docker that the container listens on the specified network ports at runtime."
+      },
+      {
+        id: 10,
+        text: "Auto-recovery and health tracking configurations?",
+        type: "multi",
+        options: [
+          "A. Implementing Docker container health check instructions (HEALTHCHECK) and monitoring container status",
+          "B. Configuring systemd service unit files to manage container daemons",
+          "C. Disabling health checks and running one-off manually launched terminal commands",
+          "D. Setting restart: unless-stopped in docker-compose.yml"
+        ],
+        answer: [0, 1, 3],
+        explanation: "HEALTHCHECK monitors readiness, systemd restarts the daemon across host reboots, and restart: unless-stopped re-spawns containers automatically."
+      },
+      {
+        id: 11,
+        text: "Differential privacy encrypts edge datasets?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["False"],
+        explanation: "False: Differential privacy adds mathematically calibrated statistical noise (e.g., Gaussian/Laplace noise) to prevent data reconstruction, not full at-rest pixel encryption."
+      },
+      {
+        id: 12,
+        text: "Hardware-isolated memory environment: Secure ______",
+        type: "single",
+        options: ["Enclave", "Firewall", "Hypervisor", "Proxy"],
+        answer: ["Enclave"],
+        explanation: "Secure Enclaves (and Trusted Execution Environments / TEE) isolate code and cryptographic material even from a compromised OS kernel."
+      },
+      {
+        id: 13,
+        text: "Lightweight containerization sharing host kernel: ______",
+        type: "single",
+        options: ["Docker", "KVM", "VirtualBox", "VMware"],
+        answer: ["Docker"],
+        explanation: "Docker provides operating-system-level virtualization sharing the host Linux kernel."
+      },
+      {
+        id: 14,
+        text: "Secure Boot prevents adversarial perturbations?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["False"],
+        explanation: "False: Secure Boot verifies firmware and OS cryptographic boot integrity; it offers no defense against adversarial sensor inputs processed by the model."
+      },
+      {
+        id: 15,
+        text: "Running edge containers as root?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["False"],
+        explanation: "False: Running as root provides zero performance acceleration and presents severe container breakout security hazards."
+      },
+      {
+        id: 16,
+        text: "Hardware feature isolating sensitive computations?",
+        type: "single",
+        options: [
+          "A. Secure Enclave / Trusted Execution Environment (TEE)",
+          "B. Standard Unprotected DRAM",
+          "C. PCIe Bus Extender",
+          "D. GPU Tessellation Unit"
+        ],
+        answer: ["A. Secure Enclave / Trusted Execution Environment (TEE)"],
+        explanation: "Secure Enclaves / TEE offer hardware-enforced memory encryption and process isolation."
+      },
+      {
+        id: 17,
+        text: "CPE179P Summative Quizzes AI policy?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["True"],
+        explanation: "True: Institutional assessments classified as AI-Prohibited mandate 100% independent individual completion."
+      },
+      {
+        id: 18,
+        text: "Technique dropping Docker image size?",
+        type: "single",
+        options: [
+          "A. Remove the .dockerignore file so all local temporary logs and virtual environments are cached inside container layers.",
+          "B. Use a full desktop Ubuntu 22.04 base image containing X11 window managers and desktop utilities.",
+          "C. Include the full build toolchain (gcc, g++, python-dev headers) in the final runtime container image.",
+          "D. Multi-stage build using a heavy SDK builder stage and copying only compiled binaries/wheels into a python:3.10-slim runtime base."
+        ],
+        answer: ["D. Multi-stage build using a heavy SDK builder stage and copying only compiled binaries/wheels into a python:3.10-slim runtime base."],
+        explanation: "Multi-stage builds leave bloated build chains behind in the build stage, retaining only the lean runtime artifacts."
+      },
+      {
+        id: 19,
+        text: "Querying API to clone models?",
+        type: "single",
+        options: [
+          "A. Physical Hardware Theft",
+          "B. Model Extraction / Model Stealing",
+          "C. Data Poisoning",
+          "D. Firmware Tampering"
+        ],
+        answer: ["B. Model Extraction / Model Stealing"],
+        explanation: "Model Extraction observes input/output pairings over multiple API queries to train an imitation surrogate model."
+      },
+      {
+        id: 20,
+        text: "CPE179P AI-______ assessment policy?",
+        type: "single",
+        options: ["Supported", "Prohibited", "Denied", "Restricted"],
+        answer: ["Supported"],
+        explanation: "AI-Supported tasks encourage the transparent, documented use of modern AI engineering utilities."
+      },
+      {
+        id: 21,
+        text: "Feature pipeline reducing MCU RAM?",
+        type: "single",
+        options: [
+          "A. Continuous online retraining of a Transformer model directly inside MCU RAM.",
+          "B. Streaming raw uncompressed audio/vibration streams to a cloud server over unencrypted MQTT.",
+          "C. Sliding-window feature extraction (RMS, peak-to-peak, FFT spectral energy) to reduce input dimensionality before feeding a tiny model.",
+          "D. Direct raw time-series ingestion of 10,000 Float32 samples into a heavy 3D-CNN."
+        ],
+        answer: ["C. Sliding-window feature extraction (RMS, peak-to-peak, FFT spectral energy) to reduce input dimensionality before feeding a tiny model."],
+        explanation: "DSP feature extraction dramatically compresses raw 10 kHz time series data into a compact statistical vector fitting easily in MCU RAM."
+      },
+      {
+        id: 22,
+        text: "Method mapping physical host hardware?",
+        type: "single",
+        options: [
+          "A. Copying the device file into the source code repository.",
+          "B. Installing host drivers inside an isolated virtual machine.",
+          "C. Mapping the peripheral via the --device flag in docker run or devices: section in docker-compose.",
+          "D. Disabling all Docker security profiles permanently."
+        ],
+        answer: ["C. Mapping the peripheral via the --device flag in docker run or devices: section in docker-compose."],
+        explanation: "The --device flag maps character/block host devices (e.g. /dev/video0) safely into the container sandbox."
+      },
+      {
+        id: 23,
+        text: "Noise-adding privacy mechanism: ______ Privacy",
+        type: "single",
+        options: ["Differential", "Homomorphic", "Zero-Knowledge", "Asymmetric"],
+        answer: ["Differential"],
+        explanation: "Differential Privacy introduces calibrated randomness to obscure the presence or contribution of individual samples."
+      },
+      {
+        id: 24,
+        text: "Key Module 3 edge containerization tools?",
+        type: "multi",
+        options: [
+          "A. Docker Compose",
+          "B. Kubernetes Multi-Region Data Center Orchestrator",
+          "C. Docker Engine",
+          "D. ONNX Runtime"
+        ],
+        answer: [0, 2, 3],
+        explanation: "Edge deployments focus on lightweight local daemons: Docker Compose, Docker Engine, and ONNX Runtime."
+      },
+      {
+        id: 25,
+        text: "End-to-end edge AI latency metrics?",
+        type: "multi",
+        options: [
+          "A. Monitor screen refresh rate in Hz",
+          "B. Mean inference latency (ms)",
+          "C. Client request to server response round-trip time (ms)",
+          "D. Throughput (inferences per second)"
+        ],
+        answer: [1, 2, 3],
+        explanation: "Inference latency, API round-trip network time, and throughput quantify complete Edge AI performance."
+      },
+      {
+        id: 26,
+        text: "Advantages of Federated Learning?",
+        type: "multi",
+        options: [
+          "A. Eliminates all communication overhead completely",
+          "B. Reduces central network bandwidth consumption",
+          "C. Enables distributed training across heterogeneous edge nodes",
+          "D. Raw data remains on local edge devices, enhancing user privacy"
+        ],
+        answer: [1, 2, 3],
+        explanation: "Raw data staying local preserves privacy, mitigates backhaul traffic, and leverages edge compute nodes."
+      },
+      {
+        id: 27,
+        text: "Privacy mechanisms for healthcare AI?",
+        type: "multi",
+        options: [
+          "A. Secure Aggregation ensuring individual hospital gradients cannot be isolated by the coordinator.",
+          "B. Federated Learning where raw imagery remains local and only encrypted model updates are transmitted.",
+          "C. Calibrated Differential Privacy noise added to local model gradients.",
+          "D. Transmitting unencrypted raw DICOM medical images to an open public S3 bucket."
+        ],
+        answer: [0, 1, 2],
+        explanation: "Secure aggregation, federated learning, and differential privacy form the triad of privacy-preserving medical AI."
+      },
+      {
+        id: 28,
+        text: "Orchestration tool using YAML files: ______",
+        type: "single",
+        options: ["Compose", "Swarm", "Engine", "Hub"],
+        answer: ["Compose"],
+        explanation: "Docker Compose reads docker-compose.yml to manage multi-container services, networks, and persistent storage."
+      },
+      {
+        id: 29,
+        text: "Methods protecting model in transit?",
+        type: "multi",
+        options: [
+          "A. TLS/SSL encrypted channels (HTTPS, MQTT over TLS)",
+          "B. Public Key Infrastructure (PKI) certificates",
+          "C. Digital signatures verifying update authenticity",
+          "D. Unencrypted plain HTTP POST requests"
+        ],
+        answer: [0, 1, 2],
+        explanation: "TLS encryption, PKI authentication, and digital signatures protect in-transit model payloads from interception and tampering."
+      },
+      {
+        id: 30,
+        text: "What '--platform linux/arm64' accomplishes?",
+        type: "multi",
+        options: [
+          "A. Converts Python code into Java bytecode",
+          "B. Ensures compatibility with ARM-based edge nodes like Raspberry Pi 4 / Jetson",
+          "C. Prevents architecture mismatch errors during cross-compilation on x86 build hosts",
+          "D. Targets 64-bit ARM architecture for the compiled container image"
+        ],
+        answer: [1, 2, 3],
+        explanation: "--platform linux/arm64 forces Docker buildx to build ARM64 instruction binaries compatible with target edge processors."
+      },
+      {
+        id: 31,
+        text: "Federated Learning keeps data local?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["True"],
+        explanation: "True: Decentralized training ensures data privacy by keeping training sets isolated at the edge."
+      },
+      {
+        id: 32,
+        text: "Docker containers share host kernel?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["True"],
+        explanation: "True: Containers avoid full hypervisor guest OS emulation overhead by utilizing host kernel namespaces and cgroups."
+      },
+      {
+        id: 33,
+        text: "Importance of Dockerfile command ordering?",
+        type: "single",
+        options: [
+          "A. Placing frequently changing code before static dependency steps invalidates build cache prematurely. Placing static dependencies first maximizes layer cache hits.",
+          "B. Caching is automatically disabled in ARM containers.",
+          "C. All COPY directives must be placed after CMD.",
+          "D. Layering order has no impact on build times."
+        ],
+        answer: ["A. Placing frequently changing code before static dependency steps invalidates build cache prematurely. Placing static dependencies first maximizes layer cache hits."],
+        explanation: "Docker caches sequentially: changing an early line invalidates all subsequent layer caches."
+      },
+      {
+        id: 34,
+        text: "Directive 'restart: unless-stopped' function?",
+        type: "single",
+        options: [
+          "A. The service restarts every 5 minutes regardless of status.",
+          "B. The container never restarts under any condition.",
+          "C. The container automatically restarts upon crash or host reboot unless explicitly stopped by an administrator.",
+          "D. The container reboots only when manual SSH commands are issued."
+        ],
+        answer: ["C. The container automatically restarts upon crash or host reboot unless explicitly stopped by an administrator."],
+        explanation: "unless-stopped maintains uptime across device reboots and crashes without overriding explicit user stop commands."
+      },
+      {
+        id: 35,
+        text: "Countermeasures against unattended hardware tampering?",
+        type: "multi",
+        options: [
+          "A. Enabling Secure Boot to verify cryptographic signatures on bootloader and kernel firmware",
+          "B. Using TLS/SSL encryption for all data in transit across edge-to-server endpoints",
+          "C. Leaving default SSH root passwords and unauthenticated administrative ports exposed",
+          "D. Running containerized services under a non-root user with restricted filesystem permissions"
+        ],
+        answer: [0, 1, 3],
+        explanation: "Secure boot, transport encryption, and least-privilege non-root execution form essential unattended hardening."
+      },
+      {
+        id: 36,
+        text: "Volume mounts require image rebuilds?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["False"],
+        explanation: "False: Volumes bind files dynamically at runtime without necessitating image rebuilds."
+      },
+      {
+        id: 37,
+        text: "Required Final Mini-Project demonstration elements?",
+        type: "multi",
+        options: [
+          "A. Demonstration running exclusively on cloud simulation without edge hardware validation",
+          "B. End-to-end latency and resource consumption benchmarks on physical hardware",
+          "C. Live or recorded video demonstration showing functional edge execution",
+          "D. Security posture and threat mitigation documentation"
+        ],
+        answer: [1, 2, 3],
+        explanation: "Physical hardware benchmarking, execution video proof, and security threat mitigations are mandatory grading criteria."
+      },
+      {
+        id: 38,
+        text: "Practices aligning with academic integrity?",
+        type: "multi",
+        options: [
+          "A. Completing AI-Prohibited tasks (Quizzes, Final Exam) 100% independently",
+          "B. Documenting prompts, design rationale, and human judgment for AI-Integrated projects",
+          "C. Submitting AI-generated content as one's own intellectual effort without citation",
+          "D. Disclosing AI-assisted contributions via an AI Usage Statement for AI-Assisted tasks"
+        ],
+        answer: [0, 1, 3],
+        explanation: "A, B, and D respect course academic policies; option C is explicit plagiarism."
+      },
+      {
+        id: 39,
+        text: "Primary memory constraint in TinyML?",
+        type: "single",
+        options: [
+          "A. Several gigabytes of dedicated VRAM.",
+          "B. Minimum 16 GB DDR5 system RAM.",
+          "C. Under 256 KB Flash memory and under 64 KB RAM.",
+          "D. Unlimited cloud storage access."
+        ],
+        answer: ["C. Under 256 KB Flash memory and under 64 KB RAM."],
+        explanation: "TinyML specifically operates in sub-milliwatt devices constrained by kilobytes of SRAM and non-volatile Flash."
+      },
+      {
+        id: 40,
+        text: "Systemd features on Linux nodes?",
+        type: "multi",
+        options: [
+          "A. Dependency management between system daemons",
+          "B. Real-time log capture via journalctl",
+          "C. Automatic restart of failed edge services",
+          "D. Neural network quantization algorithms"
+        ],
+        answer: [0, 1, 2],
+        explanation: "systemd orchestrates system services, provides journal logging, and restarts crashed processes. Quantization is handled by ML frameworks."
+      },
+      {
+        id: 41,
+        text: "Lightweight runtime for MCU deployment?",
+        type: "single",
+        options: [
+          "A. TensorFlow Serving",
+          "B. CUDA Toolkit",
+          "C. PyTorch Distributed",
+          "D. TFLite Micro"
+        ],
+        answer: ["D. TFLite Micro"],
+        explanation: "TensorFlow Lite for Microcontrollers (TFLite Micro) is written in C++ without dynamic memory allocation for bare-metal MCUs."
+      },
+      {
+        id: 42,
+        text: "Security reason for non-root USER?",
+        type: "single",
+        options: [
+          "A. To force ARM64 cross-compilation.",
+          "B. To automatically compress ONNX weights.",
+          "C. To accelerate model execution speed.",
+          "D. To mitigate potential privilege escalation risks if the container is compromised."
+        ],
+        answer: ["D. To mitigate potential privilege escalation risks if the container is compromised."],
+        explanation: "If an app running as root is exploited, the adversary obtains root privileges on the container and potentially the host."
+      },
+      {
+        id: 43,
+        text: "TinyML targets sub-64KB RAM MCUs?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["True"],
+        explanation: "True: TinyML models are compressed via INT8 quantization and pruning to live within kilobyte memory boundaries."
+      },
+      {
+        id: 44,
+        text: "Mechanism ensuring automatic service restarts?",
+        type: "single",
+        options: [
+          "A. Rebuilding the entire Docker image on every application crash.",
+          "B. Running the script manually in an interactive, temporary terminal session.",
+          "C. Configuring a systemd service unit file with Restart=always and inspecting real-time logs via journalctl.",
+          "D. Creating a cron job that forcibly kills and restarts the process every 60 seconds."
+        ],
+        answer: ["C. Configuring a systemd service unit file with Restart=always and inspecting real-time logs via journalctl."],
+        explanation: "systemd unit files with Restart=always provide automatic supervisor recovery and journalctl log preservation."
+      },
+      {
+        id: 45,
+        text: "Techniques reducing TinyML model size?",
+        type: "multi",
+        options: [
+          "A. Knowledge distillation",
+          "B. Structural network pruning",
+          "C. Post-training static quantization (Int8 / Int4)",
+          "D. Uncompressed Float64 precision expansion"
+        ],
+        answer: [0, 1, 2],
+        explanation: "Distillation, pruning, and low-bit integer quantization (INT8/INT4) minimize model weight footprint and inference cycle times."
+      },
+      {
+        id: 46,
+        text: "Cryptography operating on encrypted data?",
+        type: "single",
+        options: [
+          "A. MD5 Hashing",
+          "B. Symmetric AES-CBC",
+          "C. Homomorphic Encryption",
+          "D. Base64 Encoding"
+        ],
+        answer: ["C. Homomorphic Encryption"],
+        explanation: "Fully and Partially Homomorphic Encryption allow mathematical operations on ciphertexts without key disclosure."
+      },
+      {
+        id: 47,
+        text: "Battery-powered TinyML design choices?",
+        type: "multi",
+        options: [
+          "A. Running continuous unquantized Float32 Transformer models on cloud GPUs over a 5G cellular link.",
+          "B. Quantizing weights and activations to Int8 or Int4 precision using TFLite Micro.",
+          "C. Operating inference on an ultra-low-power ARM Cortex-M microcontroller.",
+          "D. Extracting statistical time-domain and frequency-domain features (RMS, Kurtosis, FFT) prior to model inference."
+        ],
+        answer: [1, 2, 3],
+        explanation: "B, C, and D maximize battery efficiency and compute compactness; constant 5G cloud offloading depletes energy rapidly."
+      },
+      {
+        id: 48,
+        text: "Linux service and log manager: ______",
+        type: "single",
+        options: ["systemd", "cron", "nginx", "bash"],
+        answer: ["systemd"],
+        explanation: "systemd serves as the standard init system and service supervisor across Linux distributions."
+      },
+      {
+        id: 49,
+        text: "Features of Docker versus VMs?",
+        type: "multi",
+        options: [
+          "A. Lower memory and CPU overhead",
+          "B. Including a separate full operating system kernel per container",
+          "C. Sharing the host OS kernel for lightweight execution",
+          "D. Fast startup time (seconds vs minutes)"
+        ],
+        answer: [0, 2, 3],
+        explanation: "Containers share the host kernel, yielding lower overhead and sub-second startup compared to hypervisor VMs."
+      },
+      {
+        id: 50,
+        text: "Practices preventing container bloat?",
+        type: "multi",
+        options: [
+          "A. Embedding raw high-resolution training datasets directly into the container image layer.",
+          "B. Implementing multi-stage builds to separate build dependencies from runtime dependencies.",
+          "C. Using lightweight base images such as python:3.10-slim or alpine.",
+          "D. Adding a .dockerignore file to exclude local cache, virtual environments, and source control files."
+        ],
+        answer: [1, 2, 3],
+        explanation: "Multi-stage builds, slim base images, and .dockerignore keep the runtime container small and memory usage well below 512 MB."
+      },
+      {
+        id: 51,
+        text: "Mitigating non-IID data in FL?",
+        type: "single",
+        options: [
+          "A. Increase local epoch training iterations to 1,000 per round without global aggregation.",
+          "B. Disable all encryption and broadcast raw training labels across all edge gateways.",
+          "C. Apply FedAvg with local fine-tuning / personalized layers and calibrated differential privacy noise on local model updates.",
+          "D. Force all edge devices to upload their raw crop imagery to a central public cloud bucket."
+        ],
+        answer: ["C. Apply FedAvg with local fine-tuning / personalized layers and calibrated differential privacy noise on local model updates."],
+        explanation: "Personalized federated layers accommodate non-IID localized distributions while differential privacy noise preserves user privacy."
+      },
+      {
+        id: 52,
+        text: "Benefits of volume mounts (volumes:)?",
+        type: "multi",
+        options: [
+          "A. Separates persistent model data from volatile container filesystems",
+          "B. Eliminates the need for an operating system kernel",
+          "C. Allows updating model weights without rebuilding the entire container image",
+          "D. Keeps container image size significantly smaller"
+        ],
+        answer: [0, 2, 3],
+        explanation: "Volumes decouple dynamic weights from immutable images, allowing OTA model updates without redownloading multi-hundred megabyte images."
+      },
+      {
+        id: 53,
+        text: "Technique adding noise for privacy?",
+        type: "single",
+        options: [
+          "A. Differential Privacy",
+          "B. Data Poisoning",
+          "C. Homomorphic Encryption",
+          "D. Firmware Flashing"
+        ],
+        answer: ["A. Differential Privacy"],
+        explanation: "Differential Privacy introduces calibrated stochastic noise guaranteeing that outputs do not expose individual records."
+      },
+      {
+        id: 54,
+        text: "Multi-stage builds reduce image size?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["True"],
+        explanation: "True: By copying only compiled artifacts into the final stage, heavy compilers (gcc, cmake) are discarded."
+      },
+      {
+        id: 55,
+        text: "Mechanism hiding updates from server?",
+        type: "single",
+        options: [
+          "A. Model Pruning",
+          "B. Plaintext HTTP POST",
+          "C. Secure Aggregation",
+          "D. Base64 Encoding"
+        ],
+        answer: ["C. Secure Aggregation"],
+        explanation: "Secure Aggregation uses multiparty cryptographic masking so the central server can decrypt only the sum of updates, never individual inputs."
+      },
+      {
+        id: 56,
+        text: "Low-power MCU machine learning field: ______",
+        type: "single",
+        options: ["TinyML", "BigData", "CUDA ML", "Distributed ML"],
+        answer: ["TinyML"],
+        explanation: "TinyML (Tiny Machine Learning) specializes in sub-milliwatt, bare-metal microcontroller intelligence."
+      },
+      {
+        id: 57,
+        text: "Risks reduced running non-root container?",
+        type: "multi",
+        options: [
+          "A. CPU clock cycle count reductions",
+          "B. Container breakout attacks attempting host OS filesystem takeover",
+          "C. Unauthorized modification of system configuration files inside the host",
+          "D. Privilege escalation vulnerabilities"
+        ],
+        answer: [1, 2, 3],
+        explanation: "Running as non-root stops an attacker from having superuser control over both the container and host subsystems."
+      },
+      {
+        id: 58,
+        text: "Main purpose of .dockerignore file?",
+        type: "single",
+        options: [
+          "A. To specify hardware acceleration drivers.",
+          "B. To set environment variables at runtime.",
+          "C. To define host network port mappings.",
+          "D. To exclude unnecessary files (e.g., .git, virtual environments, temp logs) to shrink image footprint and build time."
+        ],
+        answer: ["D. To exclude unnecessary files (e.g., .git, virtual environments, temp logs) to shrink image footprint and build time."],
+        explanation: ".dockerignore prevents local extraneous files from being uploaded into the Docker build context."
+      },
+      {
+        id: 59,
+        text: "CPE179P classification for Summative Quizzes?",
+        type: "single",
+        options: [
+          "A. AI-Assisted without disclosure",
+          "B. AI-Prohibited (must be completed independently)",
+          "C. AI-Integrated",
+          "D. Optional peer-graded exercise"
+        ],
+        answer: ["B. AI-Prohibited (must be completed independently)"],
+        explanation: "Summative quizzes and exams are strictly AI-Prohibited and assess individual mastery."
+      },
+      {
+        id: 60,
+        text: "TFLite Micro requires discrete GPUs?",
+        type: "single",
+        options: ["True", "False"],
+        answer: ["False"],
+        explanation: "False: TFLite Micro is specifically engineered for bare-metal microcontrollers without GPUs, requiring only tens of kilobytes of RAM."
+      }
+    ];
+
+    // User Progress State
+    let userState = {
+      answers: {}, // id: { userVal, isCorrect }
+      activeTab: 'quiz'
+    };
+
+    // Initialize Application
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSavedProgress();
+      renderQuickNav();
+      renderQuizCards();
+      renderReviewerList();
+      updateScoreMetrics();
+    });
+
+    // Save & Load LocalStorage
+    function saveProgress() {
+      try {
+        localStorage.setItem('cpe179p_progress', JSON.stringify(userState.answers));
+      } catch(e){}
+    }
+
+    function loadSavedProgress() {
+      try {
+        const saved = localStorage.getItem('cpe179p_progress');
+        if (saved) {
+          userState.answers = JSON.parse(saved);
+        }
+      } catch(e){}
+    }
+
+    function renderQuickNav() {
+      const container = document.getElementById('navBadgesList');
+      container.innerHTML = '';
+      QUESTIONS_DATA.forEach(q => {
+        const btn = document.createElement('button');
+        btn.id = `nav-badge-${q.id}`;
+        btn.innerText = `Q${q.id}`;
+        
+        let stateClass = "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border-slate-700";
+        if (userState.answers[q.id]) {
+          stateClass = userState.answers[q.id].isCorrect 
+            ? "bg-emerald-950/80 text-emerald-400 border-emerald-600/60 font-bold" 
+            : "bg-rose-950/80 text-rose-400 border-rose-600/60 font-bold";
+        }
+
+        btn.className = `badge-chip px-2.5 py-1 rounded-md border text-xs shrink-0 transition ${stateClass}`;
+        btn.onclick = () => scrollToQuestion(q.id);
+        container.appendChild(btn);
+      });
+    }
+
+    function scrollToQuestion(qid) {
+      if (userState.activeTab !== 'quiz') {
+        switchTab('quiz');
+      }
+      setTimeout(() => {
+        const card = document.getElementById(`card-${qid}`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.classList.add('ring-2', 'ring-sky-500');
+          setTimeout(() => card.classList.remove('ring-2', 'ring-sky-500'), 1500);
+        }
+      }, 50);
+    }
+
+    function switchTab(tab) {
+      userState.activeTab = tab;
+      const quizTab = document.getElementById('quizTab');
+      const reviewerTab = document.getElementById('reviewerTab');
+      const tabQuizBtn = document.getElementById('tabQuizBtn');
+      const tabReviewerBtn = document.getElementById('tabReviewerBtn');
+
+      if (tab === 'quiz') {
+        quizTab.classList.remove('hidden');
+        reviewerTab.classList.add('hidden');
+        tabQuizBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-sky-500 text-white shadow-sm flex items-center gap-2";
+        tabReviewerBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/60 flex items-center gap-2";
+      } else {
+        quizTab.classList.add('hidden');
+        reviewerTab.classList.remove('hidden');
+        tabReviewerBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-sky-500 text-white shadow-sm flex items-center gap-2";
+        tabQuizBtn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/60 flex items-center gap-2";
+      }
+    }
+
+    function renderQuizCards() {
+      const container = document.getElementById('quizCardsContainer');
+      container.innerHTML = '';
+
+      QUESTIONS_DATA.forEach(q => {
+        const card = document.createElement('div');
+        card.id = `card-${q.id}`;
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 transition-all duration-200 shadow-sm relative";
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = "flex items-start justify-between gap-3 mb-3";
+
+        const qTitle = document.createElement('div');
+        qTitle.className = "flex items-center gap-2";
+        qTitle.innerHTML = `
+          <span class="px-2.5 py-1 rounded-md bg-slate-800 text-sky-400 font-mono text-xs font-semibold border border-slate-700">Q${q.id}</span>
+          <span class="text-xs uppercase font-bold tracking-wider ${q.type === 'multi' ? 'text-amber-400' : 'text-slate-400'}">
+            ${q.type === 'multi' ? 'Multi-Select (Choose All)' : 'Single Choice'}
+          </span>
+        `;
+        headerDiv.appendChild(qTitle);
+
+        // Status badge icon
+        const statusBadge = document.createElement('span');
+        statusBadge.id = `status-${q.id}`;
+        statusBadge.className = "text-xs font-semibold px-2 py-0.5 rounded";
+        headerDiv.appendChild(statusBadge);
+
+        card.appendChild(headerDiv);
+
+        // Question prompt
+        const textP = document.createElement('p');
+        textP.className = "text-sm sm:text-base text-slate-100 font-medium leading-relaxed mb-4";
+        textP.textContent = q.text;
+        card.appendChild(textP);
+
+        // Options Container
+        const optContainer = document.createElement('div');
+        optContainer.className = "space-y-2.5";
+        optContainer.id = `opts-${q.id}`;
+
+        if (q.type === 'single') {
+          q.options.forEach((optText, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `w-full text-left p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/80 hover:border-slate-700 transition flex items-center justify-between text-xs sm:text-sm text-slate-200 option-btn-${q.id}`;
+            btn.setAttribute('data-val', optText);
+            btn.innerHTML = `
+              <span class="flex-1">${optText}</span>
+              <span class="icon-indicator ml-2 text-base"></span>
+            `;
+            btn.onclick = () => selectSingleChoice(q.id, optText);
+            optContainer.appendChild(btn);
+          });
+        } else {
+          // Multi-select checkboxes
+          q.options.forEach((optText, optIdx) => {
+            const label = document.createElement('label');
+            label.className = `flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/60 cursor-pointer transition text-xs sm:text-sm text-slate-200 multi-label-${q.id}`;
+            label.innerHTML = `
+              <input type="checkbox" name="q-${q.id}" value="${optIdx}" class="mt-0.5 rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-900">
+              <span class="flex-1">${optText}</span>
+            `;
+            optContainer.appendChild(label);
+          });
+
+          // Check Answer button for multi-select
+          const multiBtnDiv = document.createElement('div');
+          multiBtnDiv.className = "pt-2 flex items-center gap-3";
+          multiBtnDiv.innerHTML = `
+            <button onclick="checkMultiChoice(${q.id})" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold transition shadow flex items-center gap-1.5">
+              <span>Submit Selection</span>
+            </button>
+            <span id="multi-hint-${q.id}" class="text-xs text-slate-400">Select all correct options</span>
+          `;
+          optContainer.appendChild(multiBtnDiv);
+        }
+
+        card.appendChild(optContainer);
+
+        // Explanation & Breakdown Box
+        const expDiv = document.createElement('div');
+        expDiv.id = `exp-${q.id}`;
+        expDiv.className = "mt-4 p-4 rounded-xl border text-xs sm:text-sm hidden leading-relaxed transition-all";
+        card.appendChild(expDiv);
+
+        container.appendChild(card);
+
+        // If previously saved, restore visuals
+        if (userState.answers[q.id]) {
+          restoreCardVisuals(q.id);
+        }
+      });
+    }
+
+    function selectSingleChoice(qid, chosenVal) {
+      const q = QUESTIONS_DATA.find(item => item.id === qid);
+      const isCorrect = q.answer.includes(chosenVal);
+      
+      userState.answers[qid] = { userVal: chosenVal, isCorrect: isCorrect };
+      saveProgress();
+      renderQuestionFeedback(qid, isCorrect, chosenVal);
+      updateScoreMetrics();
+    }
+
+    function checkMultiChoice(qid) {
+      const q = QUESTIONS_DATA.find(item => item.id === qid);
+      const inputs = document.querySelectorAll(`input[name="q-${qid}"]:checked`);
+      const selected = Array.from(inputs).map(inp => parseInt(inp.value));
+
+      if (selected.length === 0) {
+        showToast("⚠️ Please select at least one option.");
+        return;
+      }
+
+      // Check arrays match
+      const correctIndices = q.answer.slice().sort();
+      const userIndices = selected.slice().sort();
+      const isCorrect = JSON.stringify(correctIndices) === JSON.stringify(userIndices);
+
+      userState.answers[qid] = { userVal: userIndices, isCorrect: isCorrect };
+      saveProgress();
+      renderMultiQuestionFeedback(qid, isCorrect, userIndices);
+      updateScoreMetrics();
+    }
+
+    function renderQuestionFeedback(qid, isCorrect, chosenVal) {
+      const q = QUESTIONS_DATA.find(item => item.id === qid);
+      const card = document.getElementById(`card-${qid}`);
+      const expDiv = document.getElementById(`exp-${qid}`);
+      const badge = document.getElementById(`status-${qid}`);
+      const navBadge = document.getElementById(`nav-badge-${qid}`);
+
+      // Style option buttons
+      const buttons = card.querySelectorAll(`.option-btn-${qid}`);
+      buttons.forEach(btn => {
+        const val = btn.getAttribute('data-val');
+        const icon = btn.querySelector('.icon-indicator');
+        btn.classList.remove('bg-emerald-950/40', 'border-emerald-500', 'text-emerald-300', 'bg-rose-950/40', 'border-rose-500', 'text-rose-300');
+        
+        if (q.answer.includes(val)) {
+          btn.classList.add('bg-emerald-950/40', 'border-emerald-500', 'text-emerald-300');
+          icon.innerHTML = '✅';
+        } else if (val === chosenVal && !isCorrect) {
+          btn.classList.add('bg-rose-950/40', 'border-rose-500', 'text-rose-300');
+          icon.innerHTML = '❌';
+        } else {
+          icon.innerHTML = '';
+        }
+      });
+
+      // Update Explanation container
+      expDiv.classList.remove('hidden', 'bg-emerald-950/30', 'border-emerald-600/40', 'text-emerald-200', 'bg-rose-950/30', 'border-rose-600/40', 'text-rose-200');
+      if (isCorrect) {
+        expDiv.classList.add('bg-emerald-950/30', 'border-emerald-600/40', 'text-emerald-200');
+        expDiv.innerHTML = `<strong>Correct!</strong> ${q.explanation}`;
+        badge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        badge.textContent = "Solved";
+        if (navBadge) {
+          navBadge.className = "badge-chip px-2.5 py-1 rounded-md border text-xs shrink-0 transition bg-emerald-950/80 text-emerald-400 border-emerald-600/60 font-bold";
+        }
+      } else {
+        expDiv.classList.add('bg-rose-950/30', 'border-rose-600/40', 'text-rose-200');
+        expDiv.innerHTML = `<strong>Incorrect.</strong> Correct answer is <em>"${q.answer.join(', ')}"</em>.<br><span class="opacity-90 mt-1 block">${q.explanation}</span>`;
+        badge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30";
+        badge.textContent = "Missed";
+        if (navBadge) {
+          navBadge.className = "badge-chip px-2.5 py-1 rounded-md border text-xs shrink-0 transition bg-rose-950/80 text-rose-400 border-rose-600/60 font-bold";
+        }
+      }
+    }
+
+    function renderMultiQuestionFeedback(qid, isCorrect, userIndices) {
+      const q = QUESTIONS_DATA.find(item => item.id === qid);
+      const card = document.getElementById(`card-${qid}`);
+      const expDiv = document.getElementById(`exp-${qid}`);
+      const badge = document.getElementById(`status-${qid}`);
+      const navBadge = document.getElementById(`nav-badge-${qid}`);
+
+      const labels = card.querySelectorAll(`.multi-label-${qid}`);
+      labels.forEach((lbl, optIdx) => {
+        lbl.classList.remove('border-emerald-500', 'bg-emerald-950/30', 'border-rose-500', 'bg-rose-950/30');
+        if (q.answer.includes(optIdx)) {
+          lbl.classList.add('border-emerald-500', 'bg-emerald-950/30');
+        } else if (userIndices.includes(optIdx) && !q.answer.includes(optIdx)) {
+          lbl.classList.add('border-rose-500', 'bg-rose-950/30');
+        }
+      });
+
+      expDiv.classList.remove('hidden', 'bg-emerald-950/30', 'border-emerald-600/40', 'text-emerald-200', 'bg-rose-950/30', 'border-rose-600/40', 'text-rose-200');
+      if (isCorrect) {
+        expDiv.classList.add('bg-emerald-950/30', 'border-emerald-600/40', 'text-emerald-200');
+        expDiv.innerHTML = `<strong>All Correct!</strong> ${q.explanation}`;
+        badge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        badge.textContent = "Solved";
+        if (navBadge) {
+          navBadge.className = "badge-chip px-2.5 py-1 rounded-md border text-xs shrink-0 transition bg-emerald-950/80 text-emerald-400 border-emerald-600/60 font-bold";
+        }
+      } else {
+        expDiv.classList.add('bg-rose-950/30', 'border-rose-600/40', 'text-rose-200');
+        const correctOptionsText = q.answer.map(idx => q.options[idx]).join('<br>');
+        expDiv.innerHTML = `<strong>Incomplete/Incorrect.</strong> The correct choices were:<div class="my-1.5 font-medium text-emerald-300">${correctOptionsText}</div>${q.explanation}`;
+        badge.className = "text-xs font-semibold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30";
+        badge.textContent = "Missed";
+        if (navBadge) {
+          navBadge.className = "badge-chip px-2.5 py-1 rounded-md border text-xs shrink-0 transition bg-rose-950/80 text-rose-400 border-rose-600/60 font-bold";
+        }
+      }
+    }
+
+    function restoreCardVisuals(qid) {
+      const q = QUESTIONS_DATA.find(item => item.id === qid);
+      const saved = userState.answers[qid];
+      if (!saved) return;
+
+      if (q.type === 'single') {
+        renderQuestionFeedback(qid, saved.isCorrect, saved.userVal);
+      } else {
+        // recheck multi checkboxes
+        const card = document.getElementById(`card-${qid}`);
+        saved.userVal.forEach(val => {
+          const chk = card.querySelector(`input[value="${val}"]`);
+          if (chk) chk.checked = true;
+        });
+        renderMultiQuestionFeedback(qid, saved.isCorrect, saved.userVal);
+      }
+    }
+
+    function updateScoreMetrics() {
+      const total = Object.keys(userState.answers).length;
+      let correct = 0;
+      Object.values(userState.answers).forEach(val => {
+        if (val.isCorrect) correct++;
+      });
+
+      document.getElementById('scoreDisplay').textContent = correct;
+      document.getElementById('attemptedDisplay').textContent = total;
+      const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+      document.getElementById('pctDisplay').textContent = `(${pct}%)`;
+    }
+
+    function resetQuizProgress() {
+      userState.answers = {};
+      try { localStorage.removeItem('cpe179p_progress'); } catch(e){}
+      renderQuickNav();
+      renderQuizCards();
+      updateScoreMetrics();
+      showToast("🔄 Progress reset successfully.");
+    }
+
+    function revealAllAnswers() {
+      QUESTIONS_DATA.forEach(q => {
+        if (q.type === 'single') {
+          userState.answers[q.id] = { userVal: q.answer[0], isCorrect: true };
+        } else {
+          userState.answers[q.id] = { userVal: q.answer, isCorrect: true };
+        }
+      });
+      saveProgress();
+      renderQuickNav();
+      renderQuizCards();
+      updateScoreMetrics();
+      showToast("✨ All 60 correct answers revealed!");
+    }
+
+    function renderReviewerList() {
+      const container = document.getElementById('reviewerListContainer');
+      container.innerHTML = '';
+
+      QUESTIONS_DATA.forEach(q => {
+        const item = document.createElement('div');
+        item.className = "reviewer-card bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 transition hover:border-slate-700";
+        item.setAttribute('data-search', `${q.id} ${q.text} ${q.options.join(' ')} ${q.explanation}`.toLowerCase());
+
+        let answerFormatted = '';
+        if (q.type === 'single') {
+          answerFormatted = `<span class="inline-block px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-mono font-semibold border border-emerald-500/30 text-xs sm:text-sm">${q.answer[0]}</span>`;
+        } else {
+          const list = q.answer.map(idx => `<li class="font-medium text-emerald-300">${q.options[idx]}</li>`).join('');
+          answerFormatted = `<ul class="list-disc list-inside space-y-1 text-xs sm:text-sm">${list}</ul>`;
+        }
+
+        item.innerHTML = `
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono text-xs font-bold border border-sky-500/20">Question ${q.id}</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${q.type === 'multi' ? 'Multiple Selection' : 'Exact Choice'}</span>
+          </div>
+          <p class="text-sm font-semibold text-slate-100 mb-3">${q.text}</p>
+          <div class="p-3 bg-slate-950/70 border border-emerald-500/30 rounded-xl space-y-1.5">
+            <div class="text-xs uppercase font-bold text-emerald-400 tracking-wider">Correct Answer:</div>
+            ${answerFormatted}
+          </div>
+          <div class="mt-2.5 text-xs text-slate-400 leading-relaxed">
+            <span class="font-semibold text-slate-300">Explanation & Concept:</span> ${q.explanation}
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function filterReviewer() {
+      const query = document.getElementById('reviewerSearch').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.reviewer-card');
+      cards.forEach(c => {
+        const text = c.getAttribute('data-search');
+        if (!query || text.includes(query)) {
+          c.classList.remove('hidden');
+        } else {
+          c.classList.add('hidden');
+        }
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastMessage');
+      const text = document.getElementById('toastText');
+      text.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2500);
+    }
+  </script>
+</body>
+</html>
