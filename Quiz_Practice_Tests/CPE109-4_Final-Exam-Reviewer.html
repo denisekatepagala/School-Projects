@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embedded Systems Reviewer</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f2ed;--surface:#fff;--surface2:#eceae3;--border:#ddd9ce;
+  --text:#1a1814;--muted:#8a8578;
+  --accent:#c8522a;--accent-bg:#f7ede8;
+  --blue:#2a6cc8;--blue-bg:#e8eff7;
+  --green:#2a9c5a;--green-bg:#edf7f2;
+  --correct:#2a9c5a;--correct-bg:#edf7f2;--correct-border:#a8d5bc;
+  --wrong:#c8522a;--wrong-bg:#f7ede8;--wrong-border:#f0b8a0;
+  --sel:#2a6cc8;--sel-bg:#e8eff7;
+  --mono:'IBM Plex Mono',monospace;--sans:'Outfit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+.wrap{max-width:820px;margin:0 auto;padding:0 20px;}
+header{border-bottom:1px solid var(--border);padding:18px 0;display:flex;align-items:center;gap:12px;}
+.logo{width:34px;height:34px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo span{color:var(--bg);font-family:var(--mono);font-size:11px;font-weight:600;}
+.logo-text h1{font-size:15px;font-weight:700;}
+.logo-text p{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* SELECTOR */
+#sel{padding:44px 0 80px;}
+.hero{margin-bottom:30px;}
+.hero h2{font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:8px;}
+.hero h2 em{font-style:normal;color:var(--accent);}
+.hero p{font-size:13px;color:var(--muted);font-family:var(--mono);}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px;}
+@media(max-width:640px){.cards{grid-template-columns:1fr;}.hero h2{font-size:26px;}}
+.qcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px 18px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;user-select:none;}
+.qcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ca,var(--accent));border-radius:12px 0 0 12px;opacity:0;transition:opacity .15s;}
+.qcard:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.07);}
+.qcard.sel{border-color:var(--ca,var(--accent));background:var(--cb,var(--accent-bg));}
+.qcard.sel::before{opacity:1;}
+.card-num{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:2px;color:var(--ca,var(--accent));margin-bottom:8px;display:block;}
+.qcard h3{font-size:15px;font-weight:700;margin-bottom:3px;}
+.card-cnt{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.chk{position:absolute;top:12px;right:12px;width:17px;height:17px;background:var(--ca,var(--accent));border-radius:50%;display:none;align-items:center;justify-content:center;}
+.chk::after{content:'';width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px);display:block;}
+.qcard.sel .chk{display:flex;}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--muted);margin:0 0 8px;display:block;}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
+@media(max-width:640px){.modes{grid-template-columns:1fr;}}
+.mode{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:13px 14px;cursor:pointer;text-align:left;font-family:var(--sans);transition:all .15s;}
+.mode:hover{border-color:var(--text);}
+.mode.on{background:var(--text);border-color:var(--text);color:var(--bg);}
+.mode b{font-size:13px;display:block;margin-bottom:3px;}
+.mode small{font-size:11px;color:var(--muted);line-height:1.35;display:block;}
+.mode.on small{color:#c9c5b8;}
+.opts-bar{display:flex;gap:10px;margin-bottom:26px;flex-wrap:wrap;}
+.tog{display:flex;align-items:center;gap:7px;padding:8px 15px;background:var(--surface);border:1.5px solid var(--border);border-radius:50px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tog:hover{border-color:var(--text);color:var(--text);}
+.tog.on{background:var(--text);border-color:var(--text);color:var(--bg);}
+.start-btn{width:100%;padding:15px;background:var(--text);color:var(--bg);border:none;border-radius:12px;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;}
+.start-btn:hover{background:#333;transform:translateY(-1px);}
+.start-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;}
+
+/* QUIZ */
+#quiz{padding:24px 0 80px;}
+.qbar{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.back-btn{padding:6px 13px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.back-btn:hover{border-color:var(--text);color:var(--text);}
+.prog-track{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--text);border-radius:3px;transition:width .3s;}
+.q-num{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.q-num strong{color:var(--text);}
+.breadcrumb{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:22px;padding:10px 0;border-bottom:1px solid var(--border);max-height:95px;overflow-y:auto;}
+.bdot{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bdot:hover{border-color:var(--text);color:var(--text);}
+.bdot.answered{border-color:var(--sel);background:var(--sel-bg);color:var(--sel);}
+.bdot.current{border-color:var(--text);background:var(--text);color:var(--bg);}
+.bdot.done-c{border-color:var(--correct);background:var(--correct-bg);color:var(--correct);}
+.bdot.done-w{border-color:var(--wrong);background:var(--wrong-bg);color:var(--wrong);}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.q-src{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);background:var(--surface2);display:inline-block;padding:3px 9px;border-radius:4px;}
+.q-txt{font-size:18px;font-weight:600;line-height:1.45;margin-bottom:26px;letter-spacing:-.3px;}
+.opts-list{display:flex;flex-direction:column;gap:9px;margin-bottom:20px;}
+.opt{display:flex;align-items:flex-start;gap:13px;padding:13px 16px;background:var(--surface);border:1.5px solid var(--border);border-radius:11px;cursor:pointer;text-align:left;font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.4;transition:all .12s;width:100%;}
+.opt:hover:not(:disabled){border-color:var(--text);background:var(--surface2);}
+.opt-k{width:22px;height:22px;flex-shrink:0;border-radius:5px;background:var(--surface2);border:1px solid var(--border);font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.opt.picked{border-color:var(--sel);background:var(--sel-bg);}
+.opt.picked .opt-k{background:var(--sel);border-color:var(--sel);color:#fff;}
+.opt.correct{border-color:var(--correct-border);background:var(--correct-bg);}
+.opt.correct .opt-k{background:var(--correct);border-color:var(--correct);color:#fff;}
+.opt.wrong{border-color:var(--wrong-border);background:var(--wrong-bg);}
+.opt.wrong .opt-k{background:var(--wrong);border-color:var(--wrong);color:#fff;}
+.opt:disabled{cursor:default;}
+.blank-in{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:11px;font-family:var(--mono);font-size:15px;background:var(--surface);color:var(--text);margin-bottom:20px;outline:none;}
+.blank-in:focus{border-color:var(--sel);}
+.blank-in:disabled{background:var(--surface2);}
+.fb{padding:13px 16px;border-radius:10px;font-size:13px;line-height:1.5;margin-bottom:18px;display:none;border-left:4px solid;}
+.fb.show{display:block;}
+.fb.ok{background:var(--correct-bg);border-color:var(--correct);color:#1a5c38;}
+.fb.bad{background:var(--wrong-bg);border-color:var(--wrong);color:#7a2c10;}
+.fb .ans{font-weight:700;display:block;margin-top:3px;}
+.nav-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.nav-btn{padding:11px 22px;border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.nav-btn.ghost{background:var(--surface);border:1.5px solid var(--border);color:var(--muted);}
+.nav-btn.ghost:hover{border-color:var(--text);color:var(--text);}
+.nav-btn.primary{background:var(--text);color:var(--bg);border:none;}
+.nav-btn.primary:hover{background:#333;}
+.nav-btn.submit{background:var(--accent);color:#fff;border:none;}
+.nav-btn.submit:hover{background:#a8421f;}
+.nav-btn:disabled{opacity:.35;cursor:not-allowed;}
+.cnt-note{font-size:11px;color:var(--muted);font-family:var(--mono);}
+
+/* RESULTS */
+#res{padding:48px 0 80px;}
+.res-top{text-align:center;}
+.score-ring{width:130px;height:130px;margin:0 auto 24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;border:3.5px solid var(--text);}
+.score-n{font-size:38px;font-weight:800;letter-spacing:-2px;line-height:1;}
+.score-d{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.res-title{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:5px;}
+.res-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:28px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px;}
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr);}}
+.sbox{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:16px;}
+.sv{font-size:30px;font-weight:800;letter-spacing:-1px;}
+.sv.g{color:var(--correct);} .sv.r{color:var(--wrong);}
+.sl{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.5px;}
+.res-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:34px;}
+.rb{padding:11px 22px;border-radius:9px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.rb.p{background:var(--text);color:var(--bg);border:none;}
+.rb.p:hover{background:#333;}
+.rb.g{background:var(--surface);color:var(--text);border:1.5px solid var(--border);}
+.rb.g:hover{border-color:var(--text);}
+.rev-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.rev-head h3{font-size:16px;}
+.rev-item{background:var(--surface);border:1.5px solid var(--border);border-left:5px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;text-align:left;}
+.rev-item.c{border-left-color:var(--correct);}
+.rev-item.w{border-left-color:var(--wrong);}
+.rev-item.u{border-left-color:var(--muted);}
+.rev-q{font-size:14px;font-weight:600;margin-bottom:8px;line-height:1.4;}
+.rev-q span{font-family:var(--mono);color:var(--muted);font-size:11px;margin-right:6px;}
+.rev-a{font-size:13px;line-height:1.5;}
+.rev-a b.g{color:var(--correct);} .rev-a b.r{color:var(--wrong);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo"><span>ES</span></div>
+  <div class="logo-text"><h1>Embedded Systems Reviewer</h1><p>Long Quiz 1 • Long Quiz 2 • Long Quiz 3</p></div>
+</header>
+
+<!-- SELECTOR -->
+<div id="sel" class="screen active">
+  <div class="hero">
+    <h2>Embedded Systems <em>Question Bank</em></h2>
+    <p>// Pick quizzes, pick a mode, submit, get your total score</p>
+  </div>
+  <div class="cards">
+    <div class="qcard" id="c1" style="--ca:#c8522a;--cb:#f7ede8" onclick="toggleCard(1)">
+      <div class="chk"></div><span class="card-num">LONG QUIZ 1</span>
+      <h3>Microcontrollers &amp; Interrupts</h3><div class="card-cnt" id="cnt1">— items</div>
+    </div>
+    <div class="qcard" id="c2" style="--ca:#2a6cc8;--cb:#e8eff7" onclick="toggleCard(2)">
+      <div class="chk"></div><span class="card-num">LONG QUIZ 2</span>
+      <h3>DAQ, ADC/DAC &amp; Serial Buses</h3><div class="card-cnt" id="cnt2">— items</div>
+    </div>
+    <div class="qcard" id="c3" style="--ca:#2a9c5a;--cb:#edf7f2" onclick="toggleCard(3)">
+      <div class="chk"></div><span class="card-num">LONG QUIZ 3</span>
+      <h3>RTOS, CAN, USB &amp; Wireless</h3><div class="card-cnt" id="cnt3">— items</div>
+    </div>
+  </div>
+
+  <span class="lbl">QUESTION MODE</span>
+  <div class="modes">
+    <button class="mode on" id="m_standard" onclick="setMode('standard')"><b>Standard</b><small>Original format: choices stay choices, blanks stay blanks.</small></button>
+    <button class="mode" id="m_choice" onclick="setMode('choice')"><b>Choices only</b><small>Every fill-in-the-blank is converted to multiple choice.</small></button>
+    <button class="mode" id="m_fib" onclick="setMode('fib')"><b>Fill in the blanks only</b><small>Every multiple choice / true-false becomes a typed answer.</small></button>
+  </div>
+
+  <div class="opts-bar">
+    <button class="tog" id="togOpt" onclick="toggleOpt()">⇄ Randomize options</button>
+    <button class="tog" id="togRand" onclick="toggleRand()">⇄ Randomize question order</button>
+    <button class="tog" id="togAll" onclick="selectAll()">◈ Select all quizzes</button>
+  </div>
+  <button class="start-btn" id="startBtn" onclick="startQuiz()" disabled>Start Review →</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="screen">
+  <div class="qbar">
+    <button class="back-btn" onclick="goSel()">← Menu</button>
+    <div class="prog-track"><div class="prog-fill" id="pbar" style="width:0%"></div></div>
+    <span class="q-num" id="qnum"><strong>1</strong>/1</span>
+  </div>
+  <div class="breadcrumb" id="breadcrumb"></div>
+  <div class="tags"><div class="q-src" id="qsrc"></div><div class="q-src" id="qtype"></div></div>
+  <div class="q-txt" id="qtxt"></div>
+  <div class="opts-list" id="optlist"></div>
+  <input class="blank-in" id="blank" type="text" placeholder="Type your answer here..." autocomplete="off" autocapitalize="off" spellcheck="false" style="display:none">
+  <div class="fb" id="fb"></div>
+  <div class="nav-row">
+    <button class="nav-btn ghost" id="prevBtn" onclick="goPrev()">← Prev</button>
+    <span class="cnt-note" id="ansnote"></span>
+    <div style="display:flex;gap:8px">
+      <button class="nav-btn primary" id="nextBtn" onclick="goNext()">Next →</button>
+      <button class="nav-btn submit" id="subBtn" onclick="submitQuiz()">Submit Quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="res" class="screen">
+  <div class="res-top">
+    <div class="score-ring"><div class="score-n" id="sn">0</div><div class="score-d" id="sd">/ 0</div></div>
+    <div class="res-title" id="rt">Results</div>
+    <div class="res-sub" id="rs">—</div>
+    <div class="stats">
+      <div class="sbox"><div class="sv g" id="ss1">0</div><div class="sl">CORRECT</div></div>
+      <div class="sbox"><div class="sv r" id="ss2">0</div><div class="sl">WRONG</div></div>
+      <div class="sbox"><div class="sv" id="ss4">0</div><div class="sl">UNANSWERED</div></div>
+      <div class="sbox"><div class="sv" id="ss3">0%</div><div class="sl">TOTAL SCORE</div></div>
+    </div>
+    <div class="res-btns">
+      <button class="rb p" onclick="restartSame()">↺ Retake</button>
+      <button class="rb g" id="retryBtn" onclick="retryWrong()">Retry missed only</button>
+      <button class="rb g" onclick="goSel()">Back to menu</button>
+    </div>
+  </div>
+  <div class="rev-head"><h3>Answer review</h3><button class="tog" id="togWrong" onclick="toggleWrongOnly()">Show missed only</button></div>
+  <div id="review"></div>
+</div>
+</div>
+
+<script>
+/* ============ QUESTION BANK ============
+   M = multiple choice  (q, options[], correct, {fq: blank version, s: short answer, alt: [accepted]})
+   T = true / false
+   F = fill in the blank (q with ________, answer, 3 distractors for "choices only" mode, accepted alternates)
+*/
+const M=(q,o,a,x={})=>({t:'mc',q,o,a,...x});
+const T=(q,a)=>({t:'tf',q,a:a?'True':'False'});
+const F=(q,a,d,alt=[])=>({t:'fib',q,a,d,alt});
+
+// ---------- LONG QUIZ 1 ----------
+const Q1=[
+ M("What is the difference between a Compiler and an Assembler?",["The Assembler is only used for hardware interrupts","The Compiler produces binary code directly from English instructions","The Assembler uses mnemonics while the Compiler uses C/C++","The Compiler processes high-level code while the Assembler processes low-level mnemonics"],"The Compiler processes high-level code while the Assembler processes low-level mnemonics",{fq:"A Compiler processes ________-level code, while an Assembler processes low-level mnemonics.",s:"high"}),
+ M("What is the primary function of a crystal oscillator in a microcontroller system?",["To regulate the input voltage","To store permanent program code","To keep internal timing steady and accurate","To amplify the output signals to actuators"],"To keep internal timing steady and accurate",{fq:"The primary function of a crystal oscillator in a microcontroller is to keep internal ________ steady and accurate.",s:"timing",alt:["clock","clocking"]}),
+ F("A(n) ________ interrupt is an internal hardware interrupt triggered when the running value of a timer exactly equals a pre-set target value stored in a dedicated register.","Output compare match",["Timer overflow","External interrupt","Pin change"],["output compare","compare match","output compare register","timer compare match"]),
+ M("What is the primary function of a power regulation component on a microcontroller board?",["To increase the processor clock speed during heavy computations","To convert digital data into analog output for sensors","To safely manage incoming voltage from various power sources","To store large amounts of program code for the CPU"],"To safely manage incoming voltage from various power sources",{fq:"A power regulation component on a microcontroller board safely manages incoming ________ from various power sources.",s:"voltage"}),
+ T("Unlike PC software, embedded software is usually pre-installed in the device by the manufacturer.",true),
+ M("What is the role of the Interrupt Vector Table?",["It regulates the voltage across the I/O pins","It stores the starting addresses of all interrupt Service routines","It converts analog sensor data to digital value","It calculates the prescaler value for timers"],"It stores the starting addresses of all interrupt Service routines",{fq:"The Interrupt Vector Table stores the starting ________ of all Interrupt Service Routines.",s:"addresses",alt:["address"]}),
+ M("Which type of sensor would be most appropriate for detecting human or animal movement in a security alarm system?",["Ultrasonic sensor","Thermistor","LDR","PIR sensor"],"PIR sensor",{alt:["pir","passive infrared","passive infrared sensor"]}),
+ M("What is the purpose of the prescaler in a microcontroller timer module?",["It increases the resolution of the analog sensor readings","It increase the frequency of the system clock","It divides the system clock speed down to a manageable frequency","It allows the timer to store more data packets"],"It divides the system clock speed down to a manageable frequency",{fq:"A prescaler ________ the system clock speed down to a manageable frequency for the timer.",s:"divides",alt:["divide","reduces","scales down"]}),
+ F("What is the new frequency in kHz of the timer if a prescaler of 32 is used for a microcontroller with a system clock of 16 MHz?","500",["0.5","50","512"],["500khz"]),
+ M("Where is embedded software primarily stored within a system?",["Magnetic hard disk drives","Temporary volatile RAM","Exclusively on a remote cloud server","Inside the microcontroller or a separate nonvolatile memory"],"Inside the microcontroller or a separate nonvolatile memory",{fq:"Embedded software is primarily stored inside the microcontroller or in a separate ________ memory.",s:"nonvolatile",alt:["non-volatile","non volatile"]}),
+ M("In an embedded system, which component acts as the 'muscles' to produce physical actions?",["actors","output","actuators","sensors"],"actuators",{alt:["actuator"]}),
+ T("Using the delay() function is highly recommended within an Interrupt Service Routine to ensure timing accuracy.",false),
+ M("What happens during the 2nd step of the interrupt process?",["The processor saves its current state","The external sensor is permanently disabled","The main program loop restarts from the beginning","The power regulator enters a low-power mode to save energy"],"The processor saves its current state",{fq:"During the 2nd step of the interrupt process, the processor saves its current ________.",s:"state"}),
+ F("________ is a signal to the processor emitted by hardware or software indicating an event that needs immediate attention.","Interrupt",["Polling","Prescaler","Overflow"]),
+ M("Which software tool is responsible for joining multiple source files and assigning final memory addresses to the program code?",["Assembler","Editor","Linker","Debugger"],"Linker"),
+ M("What is the significant disadvantage of using the polling approach to detect input events?",["It requires more hardware pins than the interrupt-based system","It can miss fast events if the processor is busy with other task","It forces the processor into a low-power sleep mode","It uses a special memory region call the interrupt vector table"],"It can miss fast events if the processor is busy with other task",{fq:"The significant disadvantage of polling is that it can ________ fast events if the processor is busy with other tasks.",s:"miss"}),
+ M("How many dedicated external hardware interrupt pins does an Arduino Uno have?",["6","14","20","2"],"2"),
+ F("What is the pre-load counter value needed (16-bit Timer1) using a 512 prescaler to trigger every 0.5 secs on a 16MHz Arduino?","49911",["15625","34286","65536"]),
+ M("In this type of architecture, a single memory is enough to be used by the code and data.",["Harvard","Microcontroller","Microprocessor","Von Neumann"],"Von Neumann",{alt:["von neumann architecture"]}),
+ M("Single clock cycle is enough to process information in this architecture.",["Microcontroller","Microprocessor","Von Neumann","Harvard"],"Harvard",{alt:["harvard architecture"]}),
+ M("Which one is not a usual component of an actuator?",["Actuator","Power Converter","Power Source","Strain Gauge"],"Strain Gauge"),
+ M("Which among the choices is true about emulators?",["This helps the user to work on a specific kind of application.","It has the ability to maintain loser connection to the authenticity of the digital object.","Focuses on recreating an original computer environment.","This cannot be both hardware or software."],"Focuses on recreating an original computer environment.",{fq:"An emulator focuses on recreating an original computer ________.",s:"environment"}),
+ F("________ is the other term for interrupt service routine.","Interrupt handler",["Interrupt vector","Interrupt flag","Interrupt mask"],["handler","isr handler"]),
+ M("All of these are electrical output of sensor, except one.",["Resistance","Voltage","Torque","Current"],"Torque"),
+ M("All are usual components of an actuator, except one.",["Controller","Power Source","Mechanical Load","Hydraulic Source"],"Hydraulic Source"),
+ M("Which is not a component of an actuator?",["Power Source","Actuator","Sensor","Controller"],"Sensor"),
+ M("Which is not a common sensor for Position and Displacement?",["LVDT","Optical Encoder","Potentiometer","RTD"],"RTD"),
+ F("________ is generated when a timer tries to exceed its maximum value and resets to 0.","Overflow",["Underflow","Compare match","Prescaler"],["timer overflow"]),
+ M("Which development board is uniquely identified as a full blown Linux computer with a credit card size?",["Raspberry Pi","ESP32","Arduino Uno","STM32 Nucleo"],"Raspberry Pi",{alt:["rpi"]}),
+ M("How does an interrupt mechanism improve program efficiency compared to polling?",["The processor only acts when necessary instead of constantly checking the input pin","It allows the software to ignore sensor failures","It provides more memory for program storage","It increases the clock speed of the CPU"],"The processor only acts when necessary instead of constantly checking the input pin",{fq:"An interrupt improves efficiency because the processor only acts when ________ instead of constantly checking the input pin.",s:"necessary",alt:["needed"]}),
+ T("The entire interrupt sequence (saving state, running the ISR, and restoring state) typically completes in just a few microseconds.",true),
+ F("A 12-bit timer on a microcontroller counts from 0 to ________ before it resets or overflows.","4095",["4096","2047","1023"]),
+ F("In assembly language, a ________ is a descriptive name used to functionalize an op-code.","Mnemonic",["Operand","Label","Directive"]),
+ M("Which keyword must be used in C/C++ to declare a variable shared between the main loop and an interrupt service routine?",["ISR","IRQ","volatile","int"],"volatile"),
+ M("What is the primary role of a Debugger?",["To assign a final memory for the binary code","To execute the program instructions by instructions and observe memory values and outputs","To translate high-level C code into assembly language instructions","To provide mnemonic codes for easy coding"],"To execute the program instructions by instructions and observe memory values and outputs",{fq:"The primary role of a debugger is to execute the program instruction by instruction and observe ________ values and outputs.",s:"memory"}),
+ M("What is the expected behavior of an embedded system's software in the event of a failure?",["It should automatically restart until the error clears.","It should wait for a PC software update.","It should bring the system to a safe state and inform the user.","It should increase power to overcome the stall."],"It should bring the system to a safe state and inform the user.",{fq:"In the event of a failure, embedded software should bring the system to a ________ state and inform the user.",s:"safe"}),
+ M("What does a sensor physically do in an embedded system?",["Analyzes the physical data","Acts as the output of the embedded system","Decides on what to do with the input","Converts something from the real world into data the device can use"],"Converts something from the real world into data the device can use",{fq:"A sensor converts something from the ________ world into data the device can use.",s:"real"}),
+ M("Which interrupt source is used for functions like millis() and PWM on an Arduino board?",["Serial Communication","Pin change Interrupts","Timer Interrupts","External Interrupts"],"Timer Interrupts",{alt:["timer"]}),
+ M("Which component of the microcontroller acts as the 'brain' to execute code instructions?",["Input/Output Pins","Power Regulation","Processor (CPU)","Clock source"],"Processor (CPU)",{alt:["cpu","processor"]}),
+ M("Why are functions like delay() or Serial.print() forbidden inside an interrupt service routine?",["They use too much RAM","They require separate power supply","They are blocking functions that depend on interrupts and take too long","They can only be used in bare-metal designs"],"They are blocking functions that depend on interrupts and take too long",{fq:"delay() and Serial.print() are forbidden inside an ISR because they are ________ functions that take too long.",s:"blocking",alt:["slow"]})
+];
+
+// ---------- LONG QUIZ 2 ----------
+const Q2=[
+ M("Which of the following does not belong to the onboard (inter-component) interface?",["I2C","SPI","USB","UART"],"USB"),
+ M("Using even parity scheme, what is the parity bit if the data bits are 1 1 0 0 1 0 0?",["even number","1","0","odd number"],"1"),
+ F("________ means that the transmitter and receiver do not share a common clock (timing information).","Asynchronous",["Synchronous","Isochronous","Simplex"]),
+ M("What is the step size of a 12-bit ADC if the ref voltage is 5V?",["416 mV","4.89 mV","1.22 mV","0.416 V"],"1.22 mV",{alt:["1.22mv","1.22"]}),
+ M("Which of the following is not part of signal conditioning process?",["Filtering","Digitization","Attenuation","Amplification"],"Digitization"),
+ F("A ________ approximation Register Analog-to-Digital-Converter is a type of electronic circuit that converts a continuous analog voltage into a digital binary number by using a binary search algorithm.","Successive",["Parallel","Sigma-delta","Dual-slope"]),
+ F("________ and quantization are considered as the building blocks of Analog to Digital Converters (ADC).","Sampling",["Filtering","Amplification","Multiplexing"]),
+ M("Inter-Integrated Circuit or I2C is developed by",["Intel","Texas Instruments","AMD","Philips"],"Philips"),
+ F("________ refers to the process of transforming an analog signal, which has a continuous set of values, to a digital signal, which has a discrete set.","Analog-to-digital conversion",["Digital-to-analog conversion","Signal conditioning","Modulation"],["analog to digital conversion","digitization","digitisation","adc","a/d conversion"]),
+ F("________ means that when a digital image/signal is reconstructed, it differs greatly from the original image/signal caused from sampling.","Aliasing",["Quantizing error","Attenuation","Jitter"]),
+ F("________ is concerned with the digital representation of signals and the subsequent transformation of these signals with software or digital hardware implementations of signal processing algorithm.","Digital Signal Processing",["Data Acquisition","Analog Signal Processing","Signal Conditioning"],["dsp"]),
+ M("Which bit is optional in a UART frame?",["Start","Parity","Stop","Data"],"Parity"),
+ M("Serial Peripheral Interface is a four-wire serial interface developed in",["Texas Instruments","Motorola","Intel","Xerox"],"Motorola"),
+ M("The following are components of a DAQ system except",["Sensor","DAQ Device","Actuator","Computer"],"Actuator"),
+ T("In UART, LSB is typically sent first.",true),
+ F("1-wire is developed originally by ________ semiconductor which later was acquired by Maxim Integrated and now part of Analog Devices.","Dallas",["Xerox","Motorola","Philips"]),
+ M("This is a type of OpAmp circuit used in a DAC.",["Voltage follower","Differential Amplifier","Non Inverting Op Amp Circuit","Adder/Summing Circuit"],"Adder/Summing Circuit",{alt:["summing amplifier","summing circuit","adder","summing"]}),
+ T("In I2C, both master and slaves can send/receive data.",true),
+ T("Most real-world sensors like thermocouples, thermistors and pressure transducers do not change voltage or resistance in a perfectly straight line relative to physical changes.",true),
+ F("________ sense the physical condition in the environment and produce electrical signals that the DAQ system measures.","Transducers",["Actuators","Amplifiers","Multiplexers"],["transducer","sensor","sensors"]),
+ F("________ signals are signals that vary continuously with time.","Analog",["Digital","Discrete","Binary"]),
+ F("I2C lines are high in the idle state and thus sometimes it is called a ________-master system.","multi",["single","slave","dual"],["multi-master","multimaster","multi master"]),
+ M("What is the quantization error of a 12-bit ADC?",["0.002%","0.012%","0.02%","0.2%"],"0.012%",{alt:["0.012","0.0122%","0.0122"]}),
+ F("In I2C, during the data transmissions, SDA only transitions while the SCL is ________.","low",["high","floating","rising"]),
+ T("DAQ is important as it is needed to test a system's behavior to optimize system performance.",true),
+ F("The ________ wires of I2C are serial data and serial clock.","two",["three","four","one"],["2"]),
+ F("________ is an electronic circuit that converts continuous time-varying analog signals into discrete-time digital signals so that they can easily be read by the digital devices.","ADC",["DAC","Op-amp","Multiplexer"],["analog to digital converter","analog-to-digital converter"]),
+ F("________ is a process of removing any unwanted signal from the signal of interest.","Filtering",["Amplification","Attenuation","Isolation"],["filter","filtration"]),
+ M("According to this theorem, the sampling rate/frequency needs to be at least twice as much as the highest frequency in the signal to recreate the original analog signal. Which theorem is this?",["Sampling Theorem","Nyquist Theorem","Inquist Theorem","Ayquist Theorem"],"Nyquist Theorem",{alt:["nyquist","nyquist-shannon"]}),
+ F("________ is a device communication bus system that uses a single data line plus a ground reference to transmit both power and digital data.","1-wire",["I2C","SPI","UART"],["one-wire","one wire","1 wire","1wire"]),
+ F("A parallel ADC, also called a ________ ADC, is the fastest type of circuit used to convert an analog signal into a digital value.","Flash",["Successive approximation","Sigma-delta","Dual-slope"]),
+ F("________ is the action of taking out small signals as they exists in the transducer and making them larger so that it is easier for the DAQ system to process them.","Amplification",["Attenuation","Filtering","Isolation"],["amplifying"]),
+ F("In ________, when there is no communication, the data lines are at idle high.","I2C",["SPI","UART","CAN"]),
+ T("The earliest data transmissions were parallel.",true),
+ F("________ is a method of physically and electrically separating two distinct parts of an instrument.","Isolation",["Filtering","Amplification","Multiplexing"]),
+ M("In UART, how does data travel between two devices?",["Simplex","Full Duplex","Duplex","Half-duplex"],"Full Duplex",{alt:["full-duplex"]}),
+ M("The input analog signal have frequencies of 100KHz, 120KHz and 200KHz. What is the sampling rate that the ADC should have to allow a successful reconstruction of the original signal?",["400 KHz","800 KHz","200 KHz","should be always whatever frequency the ADC can support"],"400 KHz",{alt:["400khz","400"]}),
+ F("________ is the process of measuring an electrical or physical phenomenon such as voltage, current, temperature, pressure or sound from a real world using a computer.","Data acquisition",["Signal conditioning","Data transmission","Digital signal processing"],["daq","data acquisition (daq)"]),
+ M("Digital signal processing algorithms are typically built from 3 basic functions namely: Add, Multiply and ?",["Digitize","Store","Divide","Delay"],"Delay"),
+ T("Each I2C node on a bus must have a fully configurable and non-fixed address.",false),
+ M("What is the range of a 14-bit ADC?",["4096","65536","8192","16384"],"16384",{alt:["2^14","2**14"]}),
+ M("Which of the following is NOT an advantage of a serial transmission?",["Higher throughput","Longer distance","Higher node count","Easy to implement vs parallel"],"Easy to implement vs parallel",{fq:"Serial transmission has higher throughput, longer distance and higher node count, but it is NOT ________ to implement versus parallel.",s:"easy",alt:["easier"]}),
+ F("________ rate refers to the measure of the number of bits per second that can be transmitted or received by the UART.","Baud",["Sampling","Clock","Refresh"],["baud rate","baudrate"]),
+ T("A DAQ device should be capable of signal conditioning and Analog-to-digital conversion.",true),
+ F("In 1-wire, the device can run on ________ power, meaning they draw and store electrical energy from the single data line when it is in a high voltage state, removing the need for a separate power wire.","parasitic",["battery","dual","active"],["parasite","parasitic power"]),
+ F("DAC takes in a binary input and converts it into an analog voltage that is ________ to the binary number.","proportional",["inversely related","equal","orthogonal"]),
+ M("The following are advantages of an ADC except?",["Support for Digital Signal Processing","Input Range Limitations","Noise Immunity","Digital Compatibility"],"Input Range Limitations",{alt:["input range limitation"]}),
+ F("In UART frame format, ________ refers to high voltage (1), while the low voltage (0) is called 'space'.","mark",["parity","stop","idle"]),
+ M("The following are names of the pins of an SPI except",["SDA","MISO","MOSI","SCLK"],"SDA"),
+ F("Digital ________ is a DAQ that visualizes electrical signals and waveforms over time.","oscilloscope",["multimeter","function generator","power supply"],["scope","dso"])
+];
+
+// ---------- LONG QUIZ 3 ----------
+const Q3=[
+ F("FreeRTOS is a light-weight, open-source and highly portable solution widely used in IoT and microcontrollers. It is distributed under the ________ license, it is free for both personal and commercial use.","MIT",["GPL","Apache","Proprietary"]),
+ M("To use Wi-Fi in an Arduino IDE sketch code for the ESP32, which library do you need to include?",["WiFi.cpp","not required","WiFi.h"],"WiFi.h",{alt:["wifi","#include <wifi.h>"]}),
+ T("Unlike queues, semaphores focus on resource access rather than data transfer.",true),
+ M("Which of the following is a classic, ideal use case for Bluetooth Low Energy (BLE)?",["Streaming an uncompressed multi-channel surround sound movie soundtrack to a living room soundbar.","Transmitting live telemetry and HD video from an aerial drone over a 3-kilometer range.","A wireless smart watch syncing step counts and heart-rate data periodically to a smartphone.","Connecting a laptop to a high-speed corporate fiber-optic internet gateway."],"A wireless smart watch syncing step counts and heart-rate data periodically to a smartphone.",{fq:"A classic ideal use case for BLE is a wireless ________ syncing step counts and heart-rate data periodically to a smartphone.",s:"smart watch",alt:["smartwatch","watch","fitness tracker"]}),
+ M("Ranking these wireless technologies from highest to lowest typical maximum data throughput, which order is correct?",["Classic Bluetooth > Wi-Fi > Zigbee > BLE > LoRa","LoRa > Wi-Fi > Classic Bluetooth > Zigbee > BLE","Wi-Fi > Classic Bluetooth > BLE > Zigbee > LoRa","Zigbee > BLE > Wi-Fi > Classic Bluetooth > LoRa"],"Wi-Fi > Classic Bluetooth > BLE > Zigbee > LoRa",{fq:"Among Wi-Fi, Classic Bluetooth, BLE, Zigbee and LoRa, the technology with the LOWEST typical maximum data throughput is ________.",s:"LoRa"}),
+ M("Which voltage levels represent logic states in RS-232 serial communications standards?",["+3V to +15V for logic 1 and -3V to -15V for logic 0","Logic states are determined by differential voltage difference between D+ and D- lines","+3V to +15V for logic 0 and -3V to -15V for logic 1","0V represent logic 0 and +5V represents logic 1"],"+3V to +15V for logic 0 and -3V to -15V for logic 1",{fq:"In RS-232, logic 1 is represented by ________ voltage levels (-3V to -15V).",s:"negative",alt:["-3v to -15v"]}),
+ T("In a CAN bus network, messages are directly addressed to a specific receiving nodes using their hardware address.",false),
+ M("How does twisted-pair cabling enhance noise immunity in automotive CAN bus system?",["It converts analog signals to digital pulses prior to reaching the transceiver.","It isolates CAN high and CAN low so they can carry separate, ungrounded power channels.","External noise affects both twisted wires equally, allowing differential receivers to reject common-mode noise.","The twisting increases the electrical voltage amplitude to overcome external interference."],"External noise affects both twisted wires equally, allowing differential receivers to reject common-mode noise.",{fq:"In twisted-pair CAN cabling, external noise affects both wires equally, allowing differential receivers to reject ________ noise.",s:"common-mode",alt:["common mode"]}),
+ M("What role does the RTOS IDLE task fulfill in embedded software execution?",["It executes at the lowest priority whenever no applications tasks are in the READY state.","It arbitrates access collisions between concurrent SPI bus transactions.","It preempts active applications task to force low-level sleep modes every system tick.","It handles high-frequency hardware interrupt service routines."],"It executes at the lowest priority whenever no applications tasks are in the READY state.",{fq:"The RTOS IDLE task executes at the ________ priority whenever no application tasks are in the READY state.",s:"lowest"}),
+ M("Which cpp sketch code is needed to be included when you need to use Bluetooth Classic in an Arduino IDE sketch?",["#include <BLEServer.h>","#include <BLEDevice.h>","#include <BLEUtils.h>","#include <BluetoothSerial.h>"],"#include <BluetoothSerial.h>",{alt:["bluetoothserial.h","bluetoothserial"]}),
+ M("What resistor value must be placed at both ends of a CAN Bus main line to eliminate signal reflections?",["10 KOhms","120 ohms","50 ohms","330 ohms"],"120 ohms",{alt:["120","120ohm","120ohms"]}),
+ M("What key structural differences separates Queues from Semaphores in FreeRTOS inter-task communications?",["Semaphores carry up to 64 bytes of message payload while queues store single boolean flags.","Queues transfer actual data buffers between tasks, whereas semaphores signal events using flags or counts without carrying data payloads.","Queues can only be written to by interrupt routines, while semaphores are exclusive to user tasks.","Semaphores run outside the kernel, while queues require hardware memory management units."],"Queues transfer actual data buffers between tasks, whereas semaphores signal events using flags or counts without carrying data payloads.",{fq:"Queues transfer actual ________ between tasks, whereas semaphores signal events using flags or counts without carrying data payloads.",s:"data",alt:["data buffers"]}),
+ F("________ time is the time at the process where it goes from waiting to the ready state.","Release",["Turnaround","Response","Waiting"],["release time"]),
+ F("________ is a robust commercial RTOS built for mission-critical aerospace, defense and industrial systems.","VxWorks",["FreeRTOS","Zephyr","Arduino"]),
+ T("A conventional single core processor can only execute multiple tasks at a time.",false),
+ M("Which unlicensed Industrial, Scientific, and Medical (ISM) frequency band is commonly shared by Classic Bluetooth, BLE, and Zigbee?",["60 GHz","2.4 GHz","5 GHz","915 MHz"],"2.4 GHz",{alt:["2.4ghz","2.4"]}),
+ F("In the CAN frame format, the ________ bit is overwritten with a dominant bit by receiving nodes to confirm successful message reception.","ACK",["SOF","CRC","RTR"],["acknowledge","ack bit"]),
+ F("________ are used to protect shared resources by allowing only one task to access them at a time.","Mutexes",["Queues","Timers","Event groups"],["mutex"]),
+ M("What is the primary responsibility of the kernel scheduler in an RTOS?",["Managing physical connection states across differential lines.","Determining which READY task gets CPU execution time according to a defined scheduling policy.","Compiling high-level C code task definitions into low level machine instructions.","Allocating static power levels to external sensors and peripheral devices"],"Determining which READY task gets CPU execution time according to a defined scheduling policy.",{fq:"The primary responsibility of the kernel scheduler is to determine which READY task gets ________ execution time according to a defined scheduling policy.",s:"CPU"}),
+ M("Which of the following is not a STATE in an RTOS?",["SUSPENDED","READY","SET","BLOCKED"],"SET"),
+ M("What defines a task in the BLOCKED state within an RTOS?",["It is waiting for an event or timer expiration and cannot be selected by the scheduler.","It is actively executing instructions on the processor core.","It is ready to run but is waiting for a higher-priority task to release the CPU.","It has been permanently erased from the system memory after completing execution."],"It is waiting for an event or timer expiration and cannot be selected by the scheduler.",{fq:"A task in the BLOCKED state is waiting for an event or ________ expiration and cannot be selected by the scheduler.",s:"timer"}),
+ T("USB uses a peer-to-peer architecture where any connected device can initiate communication with any other peripheral without a central controller.",false),
+ M("Zigbee is built on top of which foundational IEEE standard that specifies the physical and MAC layers for low-rate wireless personal area networks (LR-WPANs)?",["IEEE 802.1ah","IEEE 802.11ac","IEEE 802.3","IEEE 802.15.4"],"IEEE 802.15.4",{alt:["802.15.4","ieee802.15.4"]}),
+ M("Match the application to the type of real time system it operates on: anti-lock braking system",["Hard Real Time System","Firm Real Time System","Soft Real Time System"],"Hard Real Time System",{alt:["hard","hard real time","hard real-time"]}),
+ M("Match the application to the type of real time system it operates on: Global positioning systems",["Hard Real Time System","Firm Real Time System","Soft Real Time System"],"Firm Real Time System",{alt:["firm","firm real time","firm real-time"]}),
+ M("Match the application to the type of real time system it operates on: Online video games",["Hard Real Time System","Firm Real Time System","Soft Real Time System"],"Soft Real Time System",{alt:["soft","soft real time","soft real-time"]}),
+ T("In a bare-metal microcontroller application using a super loop, tasks are completely abstracted as independent execution threads managed by the kernel scheduler.",false),
+ F("________ is the time at which the computation must be finished.","Deadline",["Release time","Response time","Period"]),
+ M("What major limitation affects embedded systems developed using a single bare-metal super loop design?",["Tasks are tightly coupled in execution order, making deterministic response times difficult as system complexity grows.","Super loops are restricted from using standard serial communication protocols like UART or SPI.","Bare-metal designs cannot interact with hardware interrupts.","Super loops require more memory footprint than RTOS."],"Tasks are tightly coupled in execution order, making deterministic response times difficult as system complexity grows.",{fq:"A major limitation of a single bare-metal super loop is that tasks are tightly coupled in ________ order, making deterministic response times difficult as complexity grows.",s:"execution"}),
+ T("Missing a single deadline in a Firm Real-Time Operating System can lead to total system failure or catastrophic consequences.",false),
+ M("Scheduling policy: highest priority ready tasks run",["Preemptive priority","Round robin","Cooperative"],"Preemptive priority",{alt:["preemptive","preemptive priority-based"]}),
+ M("Scheduling policy: equal priority tasks share CPU time",["Preemptive priority","Round robin","Cooperative"],"Round robin",{alt:["round-robin","rr"]}),
+ M("Scheduling policy: tasks yield voluntarily",["Preemptive priority","Round robin","Cooperative"],"Cooperative"),
+ M("In a preemptive priority-based RTOS, what immediate action occurs when a high priority task enters a READY state while a low-priority task is running?",["The running low-priority task continues executing until its current function voluntarily calls a yield.","Both tasks run concurrently by dividing time equally through round-robin time slicing.","The scheduler suspends the running low-priority task and swaps in the high-priority tasks execution.","The high-priority task is moved to the BLOCKED state until the low-priority task finishes."],"The scheduler suspends the running low-priority task and swaps in the high-priority tasks execution.",{fq:"In a preemptive priority-based RTOS, when a high priority task becomes READY, the scheduler ________ the running low-priority task and swaps in the high-priority task.",s:"suspends",alt:["suspend","preempts","preempt"]}),
+ M("How does the USB protocol manage communications between the host computer and attached peripherals?",["The host computer continuously polls attached devices to check if they are ready to transfer data.","Devices use token-ring pass-through signaling to negotiate transmission order.","Peripherals issue asynchronous hardware interrupt signals directly to the host computer.","Nodes arbitrate access through multi-master differential collision sensing."],"The host computer continuously polls attached devices to check if they are ready to transfer data.",{fq:"In USB, the host computer continuously ________ attached devices to check if they are ready to transfer data.",s:"polls",alt:["poll","polling"]}),
+ M("If you are designing a low-power smart home system where dozens of smart bulbs, wall switches, and thermostats need to form a reliable multi-hop mesh network inside a house, which technology is traditionally the best fit?",["LoRA","Classic Bluetooth","Zigbee","Standard Wi-Fi"],"Zigbee"),
+ M("Which scenario best describes a hard Real-time Operating System constraint?",["Missing occasional deadlines degrades system performance without causing failure.","Tasks yield CPU control voluntarily without preemptive deadline enforcement.","Late results carry full utility as long as they complete within twice the expected period.","Missing a single task deadline results in catastrophic outcome or total system failure."],"Missing a single task deadline results in catastrophic outcome or total system failure.",{fq:"In a hard RTOS, missing a single task ________ results in catastrophic outcome or total system failure.",s:"deadline"}),
+ M("The following are types of programming a microcontroller except",["Bare metal programming","Interrupt-driven design","RTOS based design","While Loop Design"],"While Loop Design"),
+ M("Which IEEE standard family primarily defines traditional Wi-Fi networks, and what are the two main frequency bands traditionally utilized?",["IEEE 802.16, operating in the 10 GHz to 66 GHz microwave bands.","IEEE 802.11, operating primarily in the 2.4 GHz and 5 GHz bands","IEEE 802.15.4, operating in the 868 MHz, 915 MHz, and 2.4 GHz bands.","IEEE 802.15.1, operating exclusively in the 915 MHz and 2.4 GHz bands."],"IEEE 802.11, operating primarily in the 2.4 GHz and 5 GHz bands",{fq:"Traditional Wi-Fi is defined by the IEEE ________ standard family, operating primarily in the 2.4 GHz and 5 GHz bands.",s:"802.11",alt:["ieee 802.11"]}),
+ M("What is the primary network topology supported by Zigbee that allows messages to hop across multiple nodes to extend range and reliability?",["Ring topology","Star topology exclusively","Point-to-point topology","Mesh topology"],"Mesh topology",{alt:["mesh"]}),
+ F("The ________ is the algorithm used by the scheduler to decide which task to execute at any point in time.","scheduling policy",["task priority","time slice","context switch"],["scheduler policy"])
+];
+
+const QUIZZES=[
+  {label:"Long Quiz 1",qs:Q1},
+  {label:"Long Quiz 2",qs:Q2},
+  {label:"Long Quiz 3",qs:Q3}
+];
+
+/* ============ STATE ============ */
+let sel=new Set(), mode='standard', rndOpt=false, rndQ=false;
+let items=[], answers=[], cur=0, submitted=false, wrongOnly=false, lastCfg=null;
+
+for(let i=1;i<=3;i++) document.getElementById('cnt'+i).textContent=QUIZZES[i-1].qs.length+' items';
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function norm(s){return String(s).toLowerCase().replace(/[^a-z0-9.\-+%]/g,'');}
+
+/* ============ SELECTOR ============ */
+function refreshSel(){
+  for(let i=1;i<=3;i++) document.getElementById('c'+i).classList.toggle('sel',sel.has(i));
+  document.getElementById('startBtn').disabled=(sel.size===0);
+  document.getElementById('togAll').classList.toggle('on',sel.size===3);
+}
+function toggleCard(n){sel.has(n)?sel.delete(n):sel.add(n);refreshSel();}
+function selectAll(){if(sel.size===3)sel.clear();else[1,2,3].forEach(i=>sel.add(i));refreshSel();}
+function setMode(m){
+  mode=m;
+  ['standard','choice','fib'].forEach(k=>document.getElementById('m_'+k).classList.toggle('on',k===m));
+  document.getElementById('togOpt').style.opacity=(m==='fib')?.4:1;
+}
+function toggleOpt(){rndOpt=!rndOpt;document.getElementById('togOpt').classList.toggle('on',rndOpt);}
+function toggleRand(){rndQ=!rndQ;document.getElementById('togRand').classList.toggle('on',rndQ);}
+
+/* ============ BUILD ITEMS ============ */
+function buildItem(it,src){
+  const o={src,kind:'',q:it.q,opts:null,ans:it.a,accepted:[],tag:''};
+  if(it.t==='tf'){
+    if(mode==='fib'){
+      o.kind='type';o.q=it.q+'  (Type True or False)';
+      o.accepted=[it.a, it.a==='True'?'t':'f'];o.tag='TRUE/FALSE → FILL IN';
+    } else {o.kind='choice';o.opts=['True','False'];o.tag='TRUE / FALSE';}
+  } else if(it.t==='mc'){
+    if(mode==='fib'){
+      o.kind='type';
+      o.q=it.fq||(it.q+'  (Type your answer)');
+      o.ans=it.s||it.a;
+      o.accepted=[o.ans,...(it.alt||[])];
+      if(it.s) o.accepted.push(it.a);
+      o.tag='MULTIPLE CHOICE → FILL IN';
+    } else {
+      o.kind='choice';o.opts=rndOpt?shuffle([...it.o]):[...it.o];o.tag='MULTIPLE CHOICE';
+    }
+  } else {
+    if(mode==='choice'){
+      o.kind='choice';o.opts=shuffle([it.a,...it.d]);o.tag='FILL IN → CHOICES';
+    } else {
+      o.kind='type';o.accepted=[it.a,...(it.alt||[])];o.tag='FILL IN THE BLANK';
+    }
+  }
+  return o;
+}
+function isCorrect(o,val){
+  if(val===null||val===undefined||String(val).trim()==='')return false;
+  if(o.kind==='choice')return val===o.ans;
+  const u=norm(val);
+  return o.accepted.some(a=>{
+    const n=norm(a);
+    if(u===n)return true;
+    if(!isNaN(parseFloat(n))&&!isNaN(parseFloat(u))&&/^[0-9.,]+$/.test(String(a))&&parseFloat(u)===parseFloat(n)&&/^[0-9.]+$/.test(u))return true;
+    return n.length>=6&&u.includes(n);
+  });
+}
+
+/* ============ START / NAV ============ */
+function startQuiz(){
+  let pool=[];
+  [...sel].sort().forEach(n=>QUIZZES[n-1].qs.forEach(q=>pool.push({it:q,src:QUIZZES[n-1].label})));
+  if(rndQ)shuffle(pool);
+  lastCfg={mode,rndOpt,rndQ};
+  items=pool.map(p=>buildItem(p.it,p.src));
+  begin();
+}
+function begin(){
+  answers=items.map(()=>null);cur=0;submitted=false;wrongOnly=false;
+  showQ();show('quiz');
+}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goSel(){show('sel');}
+
+function showQ(){
+  const total=items.length,o=items[cur],val=answers[cur];
+  const answered=answers.filter(a=>a!==null&&String(a).trim()!=='').length;
+  document.getElementById('pbar').style.width=(answered/total*100)+'%';
+  document.getElementById('qnum').innerHTML='<strong>'+(cur+1)+'</strong>/'+total;
+  document.getElementById('ansnote').textContent=answered+' / '+total+' answered';
+  buildBreadcrumb();
+  document.getElementById('qsrc').textContent=o.src.toUpperCase();
+  document.getElementById('qtype').textContent=o.tag;
+  document.getElementById('qtxt').textContent=o.q;
+
+  const list=document.getElementById('optlist'),inp=document.getElementById('blank');
+  list.innerHTML='';
+  if(o.kind==='choice'){
+    inp.style.display='none';list.style.display='flex';
+    const keys=['A','B','C','D','E'];
+    o.opts.forEach((t,i)=>{
+      const b=document.createElement('button');b.className='opt';
+      const k=document.createElement('span');k.className='opt-k';k.textContent=keys[i];
+      const s=document.createElement('span');s.textContent=t;
+      b.append(k,s);
+      if(submitted){
+        b.disabled=true;
+        if(t===o.ans)b.classList.add('correct');
+        else if(t===val)b.classList.add('wrong');
+      } else {
+        if(t===val)b.classList.add('picked');
+        b.onclick=()=>{answers[cur]=t;showQ();};
+      }
+      list.appendChild(b);
+    });
+  } else {
+    list.style.display='none';inp.style.display='block';
+    inp.value=val||'';inp.disabled=submitted;
+    inp.oninput=()=>{answers[cur]=inp.value;updateProgress();};
+    if(!submitted)setTimeout(()=>inp.focus({preventScroll:true}),0);
+  }
+
+  const fb=document.getElementById('fb');
+  if(submitted){
+    const ok=isCorrect(o,val);
+    fb.className='fb show '+(ok?'ok':'bad');
+    fb.innerHTML=ok?'Correct!':((val===null||String(val).trim()==='')?'Unanswered. ':'Incorrect. ')+'<span class="ans">Correct answer: '+esc(o.ans)+'</span>';
+  } else {fb.className='fb';fb.innerHTML='';}
+
+  document.getElementById('prevBtn').disabled=(cur===0);
+  document.getElementById('nextBtn').style.display=(cur+1<total)?'inline-block':'none';
+  document.getElementById('subBtn').textContent=submitted?'View results':'Submit Quiz';
+}
+function updateProgress(){
+  const total=items.length;
+  const answered=answers.filter(a=>a!==null&&String(a).trim()!=='').length;
+  document.getElementById('pbar').style.width=(answered/total*100)+'%';
+  document.getElementById('ansnote').textContent=answered+' / '+total+' answered';
+  const d=document.querySelectorAll('.bdot')[cur];
+  if(d&&!submitted)d.classList.toggle('answered',String(answers[cur]||'').trim()!=='');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function buildBreadcrumb(){
+  const bc=document.getElementById('breadcrumb');bc.innerHTML='';
+  items.forEach((o,i)=>{
+    const d=document.createElement('button');d.className='bdot';d.textContent=i+1;
+    const has=answers[i]!==null&&String(answers[i]).trim()!=='';
+    if(submitted){d.classList.add(isCorrect(o,answers[i])?'done-c':'done-w');}
+    else if(has)d.classList.add('answered');
+    if(i===cur){d.classList.remove('answered','done-c','done-w');d.classList.add('current');}
+    d.onclick=()=>{cur=i;showQ();};
+    bc.appendChild(d);
+  });
+  const c=bc.querySelector('.current');if(c)c.scrollIntoView({block:'nearest'});
+}
+function goPrev(){if(cur>0){cur--;showQ();}}
+function goNext(){if(cur+1<items.length){cur++;showQ();}}
+
+/* ============ SUBMIT / RESULTS ============ */
+function submitQuiz(){
+  if(submitted){showResults();return;}
+  const un=answers.filter(a=>a===null||String(a).trim()==='').length;
+  if(un>0&&!confirm('You have '+un+' unanswered question'+(un>1?'s':'')+'. Submit anyway?'))return;
+  submitted=true;showResults();
+}
+function showResults(){
+  const total=items.length;
+  let c=0,u=0;
+  items.forEach((o,i)=>{
+    const has=answers[i]!==null&&String(answers[i]).trim()!=='';
+    if(!has)u++;else if(isCorrect(o,answers[i]))c++;
+  });
+  const w=total-c-u,pct=Math.round(c/total*100);
+  document.getElementById('sn').textContent=c;
+  document.getElementById('sd').textContent='/ '+total;
+  document.getElementById('rt').textContent=pct>=75?'Examination Passed!':pct>=50?'Review Cycle Recommended':'Further Practice Needed';
+  document.getElementById('rs').textContent='Total score: '+c+' / '+total+' ('+pct+'%)';
+  document.getElementById('ss1').textContent=c;
+  document.getElementById('ss2').textContent=w;
+  document.getElementById('ss4').textContent=u;
+  document.getElementById('ss3').textContent=pct+'%';
+  document.getElementById('retryBtn').style.display=(total-c>0)?'inline-block':'none';
+  renderReview();show('res');
+}
+function toggleWrongOnly(){wrongOnly=!wrongOnly;document.getElementById('togWrong').classList.toggle('on',wrongOnly);renderReview();}
+function renderReview(){
+  const box=document.getElementById('review');box.innerHTML='';
+  items.forEach((o,i)=>{
+    const val=answers[i],has=val!==null&&String(val).trim()!=='',ok=isCorrect(o,val);
+    if(wrongOnly&&ok)return;
+    const d=document.createElement('div');d.className='rev-item '+(ok?'c':has?'w':'u');
+    d.innerHTML='<div class="rev-q"><span>#'+(i+1)+' · '+esc(o.src)+'</span>'+esc(o.q)+'</div>'+
+      '<div class="rev-a">Your answer: <b class="'+(ok?'g':'r')+'">'+(has?esc(val):'(no answer)')+'</b>'+
+      (ok?' ✓':'<br>Correct answer: <b class="g">'+esc(o.ans)+'</b>')+'</div>';
+    d.style.cursor='pointer';d.onclick=()=>{cur=i;show('quiz');showQ();};
+    box.appendChild(d);
+  });
+}
+
+/* ============ RESTART ============ */
+function restartSame(){
+  // rebuild from same selection & settings (fresh shuffles)
+  let pool=[];
+  [...sel].sort().forEach(n=>QUIZZES[n-1].qs.forEach(q=>pool.push({it:q,src:QUIZZES[n-1].label})));
+  if(rndQ)shuffle(pool);
+  items=pool.map(p=>buildItem(p.it,p.src));
+  begin();
+}
+function retryWrong(){
+  const keep=items.filter((o,i)=>!isCorrect(o,answers[i]));
+  if(!keep.length)return;
+  items=keep;
+  begin();
+}
+</script>
+</body>
+</html>
