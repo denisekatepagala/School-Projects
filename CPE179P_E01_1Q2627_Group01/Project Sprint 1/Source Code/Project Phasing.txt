@@ -1,0 +1,16 @@
+Project Phasing
+
+Part 1: Basic OCR + English → Tagalog translation
+- Build the core pipeline without the dataset. Test by giving it a simple English word/sentence, e.g. "apple" → "mansanas". First verify OCR separately, then translation.
+
+Part 2: Dataset + 100-word processing
+- Add your OCR dataset and evaluate the system. Make sure the system can process images containing up to 100 English words. Measure OCR/translation results and processing time.
+
+Part 3: UI & FastAPI
+- Build the user interface and backend. User should be able to upload/capture an image → process it → display English OCR text → display Tagalog translation.
+
+Part 4: Raspberry Pi Integration
+- Move/test the complete software stack on the Raspberry Pi 4B. Check whether OCR, translation, FastAPI, and UI work properly on the Pi.
+
+Part 5: USB Camera & Final Integration
+- Connect the USB webcam, capture an image directly from the camera, send it through the pipeline, display the English and Tagalog results, then perform final testing.
