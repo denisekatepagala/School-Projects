@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background-color: #F3F4F6;
+      font-family: 'Manrope', system-ui, sans-serif;
+      color: #151922;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font-family: inherit; }
+    button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid #8E96F0;
+      outline-offset: 2px;
+    }
+    .app-container {
+      min-height: 100vh;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+    aside {
+      flex: 1 1 240px;
+      max-width: 280px;
+      background: #151922;
+      color: #FFFFFF;
+      padding: 28px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    main {
+      flex: 999 1 560px;
+      min-width: 0;
+      padding: 32px clamp(16px, 4vw, 44px) 48px;
+    }
+    .content-area {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .mode-group {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .mode-btn {
+      flex: 1 1 0;
+      min-height: 44px;
+      border: 0;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: transparent;
+      color: #C9CEDB;
+      transition: background 0.15s, color 0.15s;
+    }
+    .mode-btn.active {
+      background: #FFFFFF;
+      color: #151922;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 44px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: left;
+      background: transparent;
+      color: #C9CEDB;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #FFFFFF;
+    }
+    .nav-btn.active {
+      background: rgba(255, 255, 255, 0.14);
+      color: #FFFFFF;
+    }
+    .capture:focus-within {
+      box-shadow: 0 0 0 3px #C7CBF5;
+    }
+    .hidden { display: none !important; }
+    .del-btn {
+      background: transparent;
+      border: none;
+      color: #9CA3AF;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .del-btn:hover {
+      color: #DC2626;
+      background: #FEE2E2;
+    }
+    .card-form {
+      background: #FFFFFF;
+      border: 1px solid #E3E5EA;
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .form-input {
+      flex: 1 1 180px;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid #C9CEDB;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: #FFFFFF;
+    }
+    .form-input:focus { border-color: #4338CA; }
+    .empty-state {
+      padding: 36px 16px;
+      text-align: center;
+      color: #6B7285;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Month Calendar Styles */
+    .calendar-container {
+      background: #FFFFFF;
+      border: 1px solid #E3E5EA;
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cal-nav-btn {
+      background: #F3F4F6;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cal-nav-btn:hover { background: #E5E7EB; }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .cal-cell-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #6B7285;
+      text-align: center;
+      padding-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .cal-cell {
+      min-height: 84px;
+      background: #F9FAFB;
+      border: 1px solid #ECEEF2;
+      border-radius: 10px;
+      padding: 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: background 0.12s, border-color 0.12s;
+      overflow: hidden;
+    }
+    .cal-cell:hover { background: #F3F4F6; }
+    .cal-cell.selected {
+      border: 2px solid #4338CA;
+      background: #FFFFFF;
+    }
+    .cal-cell.today-cell {
+      background: #EEF2FF;
+      border-color: #C7D2FE;
+    }
+    .cal-cell.other-month {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .cal-date-number {
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .cal-task-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+      border-left: 3px solid transparent;
+    }
+    .cal-task-pill.done {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    /* Modal for Preview (Image or PDF) */
+    .file-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .modal-content-box {
+      background: #FFFFFF;
+      border-radius: 16px;
+      max-width: 90vw;
+      width: 850px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+    .modal-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #F9FAFB;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .modal-body {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1E293B;
+      overflow: auto;
+      min-height: 300px;
+      max-height: calc(90vh - 60px);
+    }
+    .modal-body img {
+      max-width: 100%;
+      max-height: 78vh;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    .modal-body iframe {
+      width: 100%;
+      height: 75vh;
+      border: none;
+      border-radius: 8px;
+      background: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 0 12px">
+      <div id="logo-badge" style="width: 36px; height: 36px; border-radius: 10px; background: #4338CA; display: flex; align-items: center; justify-content: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12.5l4.5 4.5L19 7.5"></path>
+        </svg>
+      </div>
+      <span style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em">My Tracker</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 0 4px">
+      <span style="padding: 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #AEB5C6">Mode</span>
+      <div class="mode-group" role="group" aria-label="Mode">
+        <button type="button" class="mode-btn active" id="btn-mode-school" onclick="setMode('school')">School</button>
+        <button type="button" class="mode-btn" id="btn-mode-personal" onclick="setMode('personal')">Personal</button>
+      </div>
+    </div>
+
+    <nav aria-label="Sections" style="display: flex; flex-direction: column; gap: 4px" id="nav-list"></nav>
+  </aside>
+
+  <!-- Main View -->
+  <main>
+    <div class="content-area">
+      <header style="display: flex; flex-direction: column; gap: 6px">
+        <span id="header-meta" style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #4338CA"></span>
+        <h1 id="header-title" style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em">Today</h1>
+        <p id="header-sub" style="margin: 0; font-size: 16px; color: #4A5164"></p>
+      </header>
+
+      <!-- View: Today -->
+      <div id="view-today" style="display: flex; flex-direction: column; gap: 20px">
+        <div id="week-chips" style="display: flex; flex-wrap: wrap; gap: 8px"></div>
+
+        <!-- Task / Activity Input -->
+        <form class="capture" onsubmit="handleAddTask(event)" style="display: flex; flex-wrap: wrap; gap: 8px; background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 8px">
+          <input id="task-input" type="text" placeholder="Add task or event (e.g. CPE110 | Quiz)..." style="flex: 2 1 220px; min-height: 44px; border: 0; background: transparent; padding: 0 12px; font: inherit; font-size: 15px; color: #151922; outline: none" required>
+          <input id="task-date-input" type="date" style="min-height: 44px; border: 1px solid #E3E5EA; border-radius: 10px; padding: 0 10px; background: #F9FAFB; font-weight: 600; color: #374151; outline: none" required>
+          <input id="task-time-input" type="time" title="Time or Deadline" style="min-height: 44px; border: 1px solid #E3E5EA; border-radius: 10px; padding: 0 10px; background: #F9FAFB; font-weight: 600; color: #374151; outline: none">
+          <select id="task-tag-select" style="min-height: 44px; border: 1px solid #E3E5EA; border-radius: 10px; padding: 0 12px; background: #F9FAFB; font-weight: 600; color: #374151; outline: none;">
+            <option value="Homework">Homework</option>
+            <option value="Exam">Exam</option>
+            <option value="Project">Project</option>
+            <option value="Group">Group</option>
+            <option value="Health">Health</option>
+            <option value="Routine">Routine</option>
+            <option value="Inbox">Inbox</option>
+          </select>
+          <button id="add-btn" type="submit" style="min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #4338CA; color: #FFFFFF; font-size: 15px; font-weight: 700; cursor: pointer">Add</button>
+        </form>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+          <!-- Tasks for Today -->
+          <section style="flex: 3 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 20px 20px 8px">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px">
+              <h2 style="margin: 0; font-size: 18px; font-weight: 800">Tasks for Today</h2>
+              <span id="task-left-counter" style="font-size: 14px; font-weight: 600; color: #5A6172">0 left</span>
+            </div>
+            <div id="today-tasks-container"></div>
+          </section>
+
+          <!-- Sidebar widgets: Progress & Timetable -->
+          <div style="flex: 2 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+            <section id="progress-card" style="background: #4338CA; color: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+              <div id="progress-label" style="font-size: 14px; font-weight: 700; color: #E3E5FF">Today's Progress</div>
+              <div id="progress-fraction" style="font-size: 34px; line-height: 1; font-weight: 800; letter-spacing: -0.02em">0 of 0 done</div>
+              <div style="height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.28); overflow: hidden">
+                <div id="progress-bar-fill" style="height: 8px; border-radius: 999px; background: #FFFFFF; width: 0%; transition: width 0.3s ease"></div>
+              </div>
+              <div id="progress-next" style="font-size: 14px; color: #E3E5FF">Next up: None</div>
+            </section>
+
+            <section style="background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+              <h2 style="margin: 0; font-size: 18px; font-weight: 800">Today's Timetable</h2>
+              <div id="today-schedule-list" style="display: flex; flex-direction: column; gap: 10px"></div>
+            </section>
+          </div>
+        </div>
+
+        <!-- Daily Log -->
+        <section style="background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 800">Daily log</h2>
+          <label id="daily-log-label" for="log-textarea" style="font-size: 14px; color: #4A5164">What did you accomplish today?</label>
+          <textarea id="log-textarea" rows="3" oninput="handleLogChange()" placeholder="One or two lines is enough..." style="width: 100%; padding: 12px 14px; border: 1px solid #C9CEDB; border-radius: 12px; font: inherit; font-size: 15px; line-height: 1.5; color: #151922; resize: vertical"></textarea>
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 14px">
+            <span id="log-saved-indicator" class="hidden" style="font-size: 14px; font-weight: 700; color: #0B5F54">Saved</span>
+            <button type="button" onclick="saveLog()" style="min-height: 44px; padding: 0 22px; border: 0; border-radius: 10px; background: #151922; color: #FFFFFF; font-size: 15px; font-weight: 700; cursor: pointer">Save entry</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- View: Deadlines -->
+      <div id="view-deadlines" class="hidden" style="display: flex; flex-direction: column; gap: 18px">
+        <section style="background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 20px" id="deadlines-container"></section>
+      </div>
+
+      <!-- View: Schedule & Monthly Calendar -->
+      <div id="view-schedule" class="hidden" style="display: flex; flex-direction: column; gap: 18px">
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <h2 id="calendar-month-year" style="margin: 0; font-size: 18px; font-weight: 800"></h2>
+            <div style="display: flex; gap: 6px">
+              <button class="cal-nav-btn" onclick="prevMonth()">‹</button>
+              <button class="cal-nav-btn" onclick="goToToday()">Today</button>
+              <button class="cal-nav-btn" onclick="nextMonth()">›</button>
+            </div>
+          </div>
+          <div class="cal-grid" id="calendar-days-grid"></div>
+        </div>
+
+        <!-- Day Details: Accomplished & Unaccomplished for Selected Date -->
+        <section style="background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 20px" id="schedule-day-items"></section>
+      </div>
+
+      <!-- View: Ideas -->
+      <div id="view-ideas" class="hidden" style="display: flex; flex-direction: column; gap: 18px">
+        <form class="card-form" onsubmit="handleAddIdea(event)">
+          <span style="font-size: 15px; font-weight: 800">Add New Idea</span>
+          <div class="form-row">
+            <input id="idea-title-input" type="text" placeholder="Idea description..." class="form-input" style="flex: 3 1 250px" required>
+            <select id="idea-stage-select" class="form-input" style="flex: 1 1 140px">
+              <option value="Just an idea">Just an idea</option>
+              <option value="Planning">Planning</option>
+              <option value="Building">Building</option>
+            </select>
+            <select id="idea-tag-select" class="form-input" style="flex: 1 1 120px">
+              <option value="Ideas">Ideas</option>
+              <option value="Homework">Homework</option>
+              <option value="Project">Project</option>
+              <option value="Group">Group</option>
+              <option value="Exam">Exam</option>
+              <option value="Health">Health</option>
+            </select>
+            <button type="submit" id="idea-add-btn" style="min-height: 42px; padding: 0 20px; border: 0; border-radius: 10px; background: #4338CA; color: #FFFFFF; font-weight: 700; cursor: pointer">Add</button>
+          </div>
+        </form>
+        <div id="ideas-board" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start"></div>
+      </div>
+
+      <!-- View: Projects -->
+      <div id="view-projects" class="hidden" style="display: flex; flex-direction: column; gap: 18px">
+        <form class="card-form" onsubmit="handleAddProject(event)">
+          <span style="font-size: 15px; font-weight: 800">Add New Project</span>
+          <div class="form-row">
+            <input id="proj-name-input" type="text" placeholder="Project name" class="form-input" required>
+            <select id="proj-status-select" class="form-input">
+              <option value="Planning">Planning</option>
+              <option value="Building">Building</option>
+              <option value="Done">Done</option>
+            </select>
+            <input id="proj-tech-input" type="text" placeholder="Tech stack (comma-separated)" class="form-input">
+          </div>
+          <div class="form-row">
+            <input id="proj-desc-input" type="text" placeholder="Short description" class="form-input" required>
+            <input id="proj-repo-input" type="text" placeholder="Repo / link URL" class="form-input">
+          </div>
+          <div class="form-row">
+            <input id="proj-learned-input" type="text" placeholder="What I learned..." class="form-input">
+            <button type="submit" id="proj-add-btn" style="min-height: 42px; padding: 0 24px; border: 0; border-radius: 10px; background: #4338CA; color: #FFFFFF; font-weight: 700; cursor: pointer">Add Project</button>
+          </div>
+        </form>
+        <div id="projects-grid" style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch"></div>
+      </div>
+
+      <!-- View: Certificates -->
+      <div id="view-certs" class="hidden" style="display: flex; flex-direction: column; gap: 18px">
+        <form class="card-form" onsubmit="handleAddCert(event)">
+          <span style="font-size: 15px; font-weight: 800">Add Certificate (PDF, PNG, JPG)</span>
+          <div class="form-row">
+            <input id="cert-name-input" type="text" placeholder="Certificate Title / Course Name" class="form-input" required>
+            <input id="cert-issuer-input" type="text" placeholder="Issuing Organization" class="form-input" required>
+            <input id="cert-date-input" type="date" class="form-input" style="flex: 1 1 140px" required>
+            <select id="cert-kind-select" class="form-input" style="flex: 1 1 120px">
+              <option value="Course">Course</option>
+              <option value="Seminar">Seminar</option>
+              <option value="Workshop">Workshop</option>
+            </select>
+          </div>
+          <div class="form-row" style="align-items: center">
+            <label style="font-size: 13px; font-weight: 700; color: #4B5563">File (PDF, PNG, JPG):</label>
+            <input id="cert-file-input" type="file" accept=".pdf, image/png, image/jpeg, image/jpg" class="form-input" style="padding-top: 8px">
+            <button type="submit" id="cert-add-btn" style="min-height: 42px; padding: 0 24px; border: 0; border-radius: 10px; background: #4338CA; color: #FFFFFF; font-weight: 700; cursor: pointer">Save Certificate</button>
+          </div>
+        </form>
+        <section style="background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 4px 20px" id="certs-container"></section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal for Certificate Viewing (PDF or Image) -->
+<div id="file-modal" class="file-modal hidden" onclick="closeModalOnBackdrop(event)">
+  <div class="modal-content-box">
+    <div class="modal-header-bar">
+      <span id="modal-title" style="font-size: 16px; font-weight: 800; color: #1E293B">View Document</span>
+      <button type="button" class="del-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body-container"></div>
+  </div>
+</div>
+
+<script>
+  const TAGS = {
+    School: { bg: '#E9EAFB', fg: '#3730A3' },
+    Homework: { bg: '#E9EAFB', fg: '#3730A3' },
+    Project: { bg: '#DFF3EE', fg: '#0B5F54' },
+    Group: { bg: '#DFF3EE', fg: '#0B5F54' },
+    Ideas: { bg: '#FCEBD0', fg: '#7A4106' },
+    Exam: { bg: '#FCEBD0', fg: '#7A4106' },
+    Certs: { bg: '#E3EEF9', fg: '#134A7C' },
+    Health: { bg: '#FBE3EC', fg: '#8A1F45' },
+    Routine: { bg: '#E3EEF9', fg: '#134A7C' },
+    Inbox: { bg: '#E8EAEF', fg: '#3F4658' }
+  };
+
+  const CONFIG = {
+    school: {
+      label: 'School',
+      accent: '#4338CA',
+      soft: '#E3E5FF',
+      placeholder: 'Add a school task (e.g. CPE110 | Quiz)...',
+      logPrompt: 'What did you learn in class today?'
+    },
+    personal: {
+      label: 'Personal',
+      accent: '#0F766E',
+      soft: '#D3F0E9',
+      placeholder: 'Add a personal task (e.g. Gym | Cardio)...',
+      logPrompt: 'What did you do or learn for yourself today?'
+    }
+  };
+
+  function toDateString(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Unified data store
+  const EMPTY_STORE = {
+    items: [],
+    ideas: { school: [], personal: [] },
+    projects: { school: [], personal: [] },
+    certs: { school: [], personal: [] },
+    logs: { school: '', personal: '' }
+  };
+
+  function loadStore() {
+    const raw = localStorage.getItem('life_tracker_unified_store');
+    if (!raw) return EMPTY_STORE;
+    try {
+      return { ...EMPTY_STORE, ...JSON.parse(raw) };
+    } catch {
+      return EMPTY_STORE;
+    }
+  }
+
+  let store = loadStore();
+  let currentMode = 'school';
+  let currentView = 'today';
+
+  // Navigation Calendar state
+  let lastKnownDateStr = toDateString(new Date());
+  let calendarYear = new Date().getFullYear();
+  let calendarMonth = new Date().getMonth();
+  let selectedDateStr = lastKnownDateStr;
+
+  function saveStore() {
+    localStorage.setItem('life_tracker_unified_store', JSON.stringify(store));
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('btn-mode-school').classList.toggle('active', mode === 'school');
+    document.getElementById('btn-mode-personal').classList.toggle('active', mode === 'personal');
+    document.getElementById('log-saved-indicator').classList.add('hidden');
+    render();
+  }
+
+  function setView(view) {
+    currentView = view;
+    render();
+  }
+
+  // Unified Task & Schedule Add Method
+  function handleAddTask(e) {
+    e.preventDefault();
+    const titleInput = document.getElementById('task-input');
+    const dateInput = document.getElementById('task-date-input');
+    const timeInput = document.getElementById('task-time-input');
+    const tagSelect = document.getElementById('task-tag-select');
+
+    const title = titleInput.value.trim();
+    const date = dateInput.value || toDateString(new Date());
+    const time = timeInput.value || '';
+    const tag = tagSelect.value;
+
+    if (!title) return;
+
+    store.items.push({
+      id: Date.now(),
+      mode: currentMode,
+      title: title,
+      date: date,
+      time: time,
+      tag: tag,
+      done: false
+    });
+
+    titleInput.value = '';
+    timeInput.value = '';
+    saveStore();
+    render();
+  }
+
+  function toggleItem(id) {
+    const item = store.items.find(x => x.id === id);
+    if (item) {
+      item.done = !item.done;
+      saveStore();
+      render();
+    }
+  }
+
+  function deleteItem(id) {
+    store.items = store.items.filter(x => x.id !== id);
+    saveStore();
+    render();
+  }
+
+  // Ideas Methods
+  function handleAddIdea(e) {
+    e.preventDefault();
+    const title = document.getElementById('idea-title-input').value.trim();
+    const stage = document.getElementById('idea-stage-select').value;
+    const tag = document.getElementById('idea-tag-select').value;
+    if (!title) return;
+
+    store.ideas[currentMode].push({
+      id: Date.now(),
+      title: title,
+      stage: stage,
+      tag: tag
+    });
+
+    document.getElementById('idea-title-input').value = '';
+    saveStore();
+    render();
+  }
+
+  function deleteIdea(id) {
+    store.ideas[currentMode] = store.ideas[currentMode].filter(x => x.id !== id);
+    saveStore();
+    render();
+  }
+
+  // Project Methods
+  function handleAddProject(e) {
+    e.preventDefault();
+    const name = document.getElementById('proj-name-input').value.trim();
+    const status = document.getElementById('proj-status-select').value;
+    const techRaw = document.getElementById('proj-tech-input').value.trim();
+    const desc = document.getElementById('proj-desc-input').value.trim();
+    const repo = document.getElementById('proj-repo-input').value.trim();
+    const learned = document.getElementById('proj-learned-input').value.trim();
+    if (!name || !desc) return;
+
+    const tech = techRaw ? techRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+    store.projects[currentMode].push({
+      id: Date.now(),
+      name: name,
+      status: status,
+      tech: tech,
+      desc: desc,
+      repo: repo,
+      learned: learned
+    });
+
+    document.getElementById('proj-name-input').value = '';
+    document.getElementById('proj-tech-input').value = '';
+    document.getElementById('proj-desc-input').value = '';
+    document.getElementById('proj-repo-input').value = '';
+    document.getElementById('proj-learned-input').value = '';
+    saveStore();
+    render();
+  }
+
+  function deleteProject(id) {
+    store.projects[currentMode] = store.projects[currentMode].filter(x => x.id !== id);
+    saveStore();
+    render();
+  }
+
+  // Certificate Methods with PDF & Image Support
+  function handleAddCert(e) {
+    e.preventDefault();
+    const name = document.getElementById('cert-name-input').value.trim();
+    const issuer = document.getElementById('cert-issuer-input').value.trim();
+    const date = document.getElementById('cert-date-input').value;
+    const kind = document.getElementById('cert-kind-select').value;
+    const fileInput = document.getElementById('cert-file-input');
+
+    if (!name || !issuer || !date) return;
+
+    function saveCert(fileData, fileType) {
+      store.certs[currentMode].push({
+        id: Date.now(),
+        name: name,
+        issuer: issuer,
+        date: date,
+        kind: kind,
+        fileData: fileData || null,
+        fileType: fileType || null
+      });
+      document.getElementById('cert-name-input').value = '';
+      document.getElementById('cert-issuer-input').value = '';
+      document.getElementById('cert-date-input').value = '';
+      fileInput.value = '';
+      saveStore();
+      render();
+    }
+
+    if (fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      
+      reader.onload = function(evt) {
+        saveCert(evt.target.result, isPdf ? 'pdf' : 'image');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      saveCert(null, null);
+    }
+  }
+
+  function deleteCert(id) {
+    store.certs[currentMode] = store.certs[currentMode].filter(x => x.id !== id);
+    saveStore();
+    render();
+  }
+
+  function viewCertificateDoc(dataUri, type, title) {
+    const modal = document.getElementById('file-modal');
+    const body = document.getElementById('modal-body-container');
+    const titleEl = document.getElementById('modal-title');
+
+    titleEl.textContent = title || 'Certificate Document';
+    body.innerHTML = '';
+
+    if (type === 'pdf') {
+      body.innerHTML = `<iframe src="${dataUri}"></iframe>`;
+    } else {
+      body.innerHTML = `<img src="${dataUri}" alt="Certificate View">`;
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('file-modal');
+    modal.classList.add('hidden');
+    document.getElementById('modal-body-container').innerHTML = '';
+  }
+
+  function closeModalOnBackdrop(e) {
+    if (e.target.id === 'file-modal') {
+      closeModal();
+    }
+  }
+
+  // Calendar Navigation
+  function prevMonth() {
+    calendarMonth--;
+    if (calendarMonth < 0) {
+      calendarMonth = 11;
+      calendarYear--;
+    }
+    renderCalendar();
+  }
+
+  function nextMonth() {
+    calendarMonth++;
+    if (calendarMonth > 11) {
+      calendarMonth = 0;
+      calendarYear++;
+    }
+    renderCalendar();
+  }
+
+  function goToToday() {
+    const n = new Date();
+    calendarYear = n.getFullYear();
+    calendarMonth = n.getMonth();
+    selectCalendarDate(toDateString(n));
+  }
+
+  function selectCalendarDate(dateStr) {
+    selectedDateStr = dateStr;
+    document.getElementById('task-date-input').value = dateStr;
+    render();
+  }
+
+  // Daily Log
+  function handleLogChange() {
+    store.logs[currentMode] = document.getElementById('log-textarea').value;
+    document.getElementById('log-saved-indicator').classList.add('hidden');
+    saveStore();
+  }
+
+  function saveLog() {
+    saveStore();
+    document.getElementById('log-saved-indicator').classList.remove('hidden');
+  }
+
+  // Central Render
+  function render() {
+    const conf = CONFIG[currentMode];
+    const accent = conf.accent;
+    const todayStr = toDateString(new Date());
+
+    const modeItems = store.items.filter(i => i.mode === currentMode);
+    const todayItems = modeItems.filter(i => i.date === todayStr);
+    const todayOpen = todayItems.filter(i => !i.done);
+    const todayDone = todayItems.filter(i => i.done);
+    const upcomingDeadlines = modeItems.filter(i => !i.done);
+
+    // Accent Styling
+    document.getElementById('logo-badge').style.background = accent;
+    document.getElementById('add-btn').style.background = accent;
+    document.getElementById('idea-add-btn').style.background = accent;
+    document.getElementById('proj-add-btn').style.background = accent;
+    document.getElementById('cert-add-btn').style.background = accent;
+    document.getElementById('header-meta').style.color = accent;
+    document.getElementById('progress-card').style.background = accent;
+    document.getElementById('progress-label').style.color = conf.soft;
+    document.getElementById('progress-next').style.color = conf.soft;
+
+    // Header updates
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+    const viewHeadings = {
+      today: ['Today', `${todayOpen.length} ${todayOpen.length === 1 ? 'task' : 'tasks'} remaining for today`],
+      deadlines: ['Incoming Deadlines', `${upcomingDeadlines.length} pending deadlines in queue`],
+      schedule: ['Schedule & Calendar', `Showing activities for ${selectedDateStr}`],
+      ideas: ['Ideas & Brainstorming', `${store.ideas[currentMode].length} ideas recorded`],
+      projects: ['Projects', `${store.projects[currentMode].length} projects`],
+      certs: ['Certificates', `${store.certs[currentMode].length} certificates`]
+    };
+
+    document.getElementById('header-meta').textContent = `${dateFormatted} • ${conf.label.toUpperCase()}`;
+    document.getElementById('header-title').textContent = viewHeadings[currentView][0];
+    document.getElementById('header-sub').textContent = viewHeadings[currentView][1];
+
+    // Navigation Menu
+    const navItems = [
+      { id: 'today', label: 'Today', count: todayOpen.length, icon: 'M12 3a9 9 0 100 18 9 9 0 000-18zM8 12.5l2.7 2.7L16 9.5' },
+      { id: 'deadlines', label: 'Deadlines', count: upcomingDeadlines.length, icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { id: 'schedule', label: 'Schedule', count: null, icon: 'M4 7a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7zM4 10h16M8 3v4M16 3v4' },
+      { id: 'ideas', label: 'Ideas', count: store.ideas[currentMode].length, icon: 'M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0012 3z' },
+      { id: 'projects', label: 'Projects', count: store.projects[currentMode].length, icon: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' },
+      { id: 'certs', label: 'Certificates', count: store.certs[currentMode].length, icon: 'M12 14a5 5 0 100-10 5 5 0 000 10zM8.5 13.5L7 21l5-3 5 3-1.5-7.5' }
+    ];
+
+    document.getElementById('nav-list').innerHTML = navItems.map(item => `
+      <button type="button" class="nav-btn ${currentView === item.id ? 'active' : ''}" onclick="setView('${item.id}')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="${item.icon}"></path>
+        </svg>
+        <span style="flex: 1">${item.label}</span>
+        ${item.count !== null ? `<span style="font-size: 13px; font-weight: 700; color: #AEB5C6">${item.count}</span>` : ''}
+      </button>
+    `).join('');
+
+    // Toggle views
+    ['today', 'deadlines', 'schedule', 'ideas', 'projects', 'certs'].forEach(v => {
+      document.getElementById(`view-${v}`).classList.toggle('hidden', currentView !== v);
+    });
+
+    if (currentView === 'today') renderToday(conf, accent, todayItems, todayOpen, todayDone);
+    if (currentView === 'deadlines') renderDeadlines(upcomingDeadlines);
+    if (currentView === 'schedule') {
+      renderCalendar();
+      renderDayAgenda();
+    }
+    if (currentView === 'ideas') renderIdeas();
+    if (currentView === 'projects') renderProjects();
+    if (currentView === 'certs') renderCerts();
+  }
+
+  // Today Renderer
+  function renderToday(conf, accent, todayItems, todayOpen, todayDone) {
+    const todayObj = new Date();
+    const dayChips = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    for (let i = -2; i <= 4; i++) {
+      const d = new Date(todayObj);
+      d.setDate(todayObj.getDate() + i);
+      dayChips.push({
+        dateStr: toDateString(d),
+        dayName: dayNames[d.getDay()],
+        dayNum: d.getDate(),
+        isToday: i === 0
+      });
+    }
+
+    document.getElementById('week-chips').innerHTML = dayChips.map(c => `
+      <div onclick="selectCalendarDate('${c.dateStr}'); setView('schedule');" style="flex: 1 1 56px; min-width: 52px; padding: 10px 0; border-radius: 12px; text-align: center; border: 1px solid ${c.isToday ? accent : '#E3E5EA'}; background: ${c.isToday ? accent : '#FFFFFF'}; color: ${c.isToday ? '#FFFFFF' : '#151922'}; cursor: pointer">
+        <div style="font-size: 12px; font-weight: 700; color: ${c.isToday ? conf.soft : '#5A6172'}">${c.dayName}</div>
+        <div style="font-size: 20px; font-weight: 800">${c.dayNum}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('task-input').placeholder = conf.placeholder;
+    if (!document.getElementById('task-date-input').value) {
+      document.getElementById('task-date-input').value = toDateString(new Date());
+    }
+    document.getElementById('task-left-counter').textContent = `${todayOpen.length} left`;
+
+    const taskContainer = document.getElementById('today-tasks-container');
+    if (todayItems.length === 0) {
+      taskContainer.innerHTML = `<div class="empty-state">No tasks scheduled for today. Add one above!</div>`;
+    } else {
+      taskContainer.innerHTML = todayItems.map(t => {
+        const tagStyle = TAGS[t.tag] || TAGS.Inbox;
+        return `
+          <div style="display: flex; align-items: center; gap: 8px; border-top: 1px solid #ECEEF2; min-height: 56px">
+            <button type="button" onclick="toggleItem(${t.id})" aria-label="Toggle ${t.title}" style="width: 38px; height: 38px; flex: 0 0 38px; border: 0; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer">
+              <span style="width: 22px; height: 22px; border-radius: 7px; display: flex; align-items: center; justify-content: center; background: ${t.done ? '#0F766E' : '#FFFFFF'}; border: 2px solid ${t.done ? '#0F766E' : '#7A8297'}">
+                ${t.done ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>` : ''}
+              </span>
+            </button>
+            <div style="flex: 1 1 auto; min-width: 0">
+              <div style="font-size: 15px; font-weight: 600; line-height: 1.4; color: ${t.done ? '#6B7285' : '#151922'}; text-decoration: ${t.done ? 'line-through' : 'none'}">${t.title}</div>
+              <div style="font-size: 11px; font-weight: 700; color: #9CA3AF">${t.time ? `Time: ${t.time}` : 'No time set'}</div>
+            </div>
+            <span style="flex: 0 0 auto; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: ${tagStyle.bg}; color: ${tagStyle.fg}">${t.tag}</span>
+            <button type="button" class="del-btn" onclick="deleteItem(${t.id})" title="Delete task">✕</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const pct = todayItems.length ? Math.round((todayDone.length / todayItems.length) * 100) : 0;
+    document.getElementById('progress-fraction').textContent = `${todayDone.length} of ${todayItems.length} done`;
+    document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+    document.getElementById('progress-next').textContent = todayOpen.length > 0 ? `Next up: ${todayOpen[0].title}` : 'All caught up today!';
+
+    const timedItems = todayItems.filter(i => i.time).sort((a, b) => a.time.localeCompare(b.time));
+    const schedContainer = document.getElementById('today-schedule-list');
+    if (timedItems.length === 0) {
+      schedContainer.innerHTML = `<div style="font-size: 13px; color: #6B7285">No timed events scheduled today.</div>`;
+    } else {
+      schedContainer.innerHTML = timedItems.map(item => `
+        <div style="display: flex; align-items: stretch; gap: 12px">
+          <span style="flex: 0 0 52px; padding-top: 10px; font-size: 13px; font-weight: 700; color: #5A6172">${item.time}</span>
+          <div style="flex: 1 1 auto; min-width: 0; padding: 10px 12px; border-radius: 10px; background: #EEF2FF; color: #3730A3">
+            <div style="font-size: 14px; font-weight: 700; ${item.done ? 'text-decoration: line-through; opacity: 0.6' : ''}">${item.title}</div>
+            <div style="font-size: 11px; font-weight: 600">${item.tag}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('daily-log-label').textContent = conf.logPrompt;
+    document.getElementById('log-textarea').value = store.logs[currentMode] || '';
+  }
+
+  // Deadlines View Renderer with Midnight Date Comparison
+  function renderDeadlines(deadlines) {
+    const container = document.getElementById('deadlines-container');
+    const sorted = [...deadlines].sort((a, b) => new Date(`${a.date}T${a.time || '23:59'}`) - new Date(`${b.date}T${b.time || '23:59'}`));
+
+    if (sorted.length === 0) {
+      container.innerHTML = `<div class="empty-state">No upcoming deadlines! Add tasks with dates above to populate deadlines.</div>`;
+      return;
+    }
+
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+
+    container.innerHTML = `
+      <div style="font-size: 18px; font-weight: 800; margin-bottom: 14px">Upcoming Deliverables & Deadlines</div>
+      ${sorted.map(d => {
+        const targetMidnight = new Date(d.date + "T00:00:00");
+        const diffDays = Math.round((targetMidnight - todayMidnight) / (1000 * 60 * 60 * 24));
+
+        let badgeBg = '#E9EAFB';
+        let badgeFg = '#3730A3';
+        let countdown = `${diffDays} days left`;
+
+        if (diffDays < 0) {
+          badgeBg = '#FEE2E2';
+          badgeFg = '#991B1B';
+          countdown = 'Overdue';
+        } else if (diffDays === 0) {
+          badgeBg = '#FEF3C7';
+          badgeFg = '#92400E';
+          countdown = 'Due Today';
+        } else if (diffDays === 1) {
+          countdown = 'Tomorrow';
+        }
+
+        return `
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid #ECEEF2">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <button type="button" onclick="toggleItem(${d.id})" style="width: 32px; height: 32px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center">
+                <span style="width: 22px; height: 22px; border-radius: 7px; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 2px solid #7A8297"></span>
+              </button>
+              <div>
+                <div style="font-size: 16px; font-weight: 700; color: #151922">${d.title}</div>
+                <div style="font-size: 13px; font-weight: 600; color: #5A6172">${d.date} ${d.time ? 'at ' + d.time : ''} • Tag: <b>${d.tag}</b></div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <span style="padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 800; background: ${badgeBg}; color: ${badgeFg}">${countdown}</span>
+              <button type="button" class="del-btn" onclick="deleteItem(${d.id})">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    `;
+  }
+
+  // Calendar & Agenda Renderer
+  function renderCalendar() {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('calendar-month-year').textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+
+    const grid = document.getElementById('calendar-days-grid');
+    grid.innerHTML = '';
+
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+      const headerCell = document.createElement('div');
+      headerCell.className = 'cal-cell-header';
+      headerCell.textContent = day;
+      grid.appendChild(headerCell);
+    });
+
+    const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
+    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(calendarYear, calendarMonth, 0).getDate();
+    const todayStr = toDateString(new Date());
+
+    for (let x = firstDayIndex; x > 0; x--) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell other-month';
+      cell.innerHTML = `<span class="cal-date-number">${daysInPrevMonth - x + 1}</span>`;
+      grid.appendChild(cell);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(calendarYear, calendarMonth, day);
+      const cellDateStr = toDateString(cellDate);
+
+      const cell = document.createElement('div');
+      cell.className = 'cal-cell';
+      if (cellDateStr === selectedDateStr) cell.classList.add('selected');
+      if (cellDateStr === todayStr) cell.classList.add('today-cell');
+
+      const dayTasks = store.items.filter(i => i.mode === currentMode && i.date === cellDateStr);
+
+      let tasksHtml = '';
+      dayTasks.slice(0, 3).forEach(t => {
+        const tagTheme = TAGS[t.tag] || TAGS.Inbox;
+        tasksHtml += `
+          <div class="cal-task-pill ${t.done ? 'done' : ''}" style="background: ${tagTheme.bg}; color: ${tagTheme.fg}; border-left-color: ${tagTheme.fg}">
+            ${t.title}
+          </div>
+        `;
+      });
+      if (dayTasks.length > 3) {
+        tasksHtml += `<div style="font-size: 10px; font-weight: 800; color: #6B7285">+${dayTasks.length - 3} more</div>`;
+      }
+
+      cell.innerHTML = `
+        <span class="cal-date-number">${day}</span>
+        ${tasksHtml}
+      `;
+
+      cell.onclick = () => selectCalendarDate(cellDateStr);
+      grid.appendChild(cell);
+    }
+  }
+
+  // Day Detail Renderer (Accomplished & Unaccomplished)
+  function renderDayAgenda() {
+    const container = document.getElementById('schedule-day-items');
+    const dayTasks = store.items.filter(i => i.mode === currentMode && i.date === selectedDateStr);
+    const accomplished = dayTasks.filter(t => t.done);
+    const unaccomplished = dayTasks.filter(t => !t.done);
+
+    container.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; border-bottom: 1px solid #ECEEF2; padding-bottom: 10px">
+        <div>
+          <h2 style="margin: 0; font-size: 20px; font-weight: 800">Tasks & Schedule for ${selectedDateStr}</h2>
+          <span style="font-size: 14px; color: #5A6172">${accomplished.length} accomplished, ${unaccomplished.length} pending</span>
+        </div>
+        <button type="button" onclick="document.getElementById('task-date-input').value = '${selectedDateStr}'; setView('today'); document.getElementById('task-input').focus();" style="background: #151922; color: #FFFFFF; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer">
+          + Add Task for this Date
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <div>
+          <h3 style="font-size: 15px; font-weight: 800; color: #DC2626; margin: 0 0 10px">Pending / Unaccomplished (${unaccomplished.length})</h3>
+          ${unaccomplished.length === 0 ? `<div style="font-size: 14px; color: #9CA3AF">No pending tasks for this day.</div>` : ''}
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            ${unaccomplished.map(t => `
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; background: #F9FAFB; border: 1px solid #ECEEF2">
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <button type="button" onclick="toggleItem(${t.id})" style="border: none; background: transparent; cursor: pointer; padding: 0">
+                    <span style="width: 20px; height: 20px; border-radius: 6px; display: inline-block; border: 2px solid #7A8297; background: #FFFFFF"></span>
+                  </button>
+                  <span style="font-size: 15px; font-weight: 700">${t.title}</span>
+                  ${t.time ? `<span style="font-size: 12px; font-weight: 700; color: #6B7285">(${t.time})</span>` : ''}
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span style="padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; background: ${TAGS[t.tag]?.bg || '#E8EAEF'}; color: ${TAGS[t.tag]?.fg || '#3F4658'}">${t.tag}</span>
+                  <button type="button" class="del-btn" onclick="deleteItem(${t.id})">✕</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-size: 15px; font-weight: 800; color: #059669; margin: 0 0 10px">Accomplished (${accomplished.length})</h3>
+          ${accomplished.length === 0 ? `<div style="font-size: 14px; color: #9CA3AF">No accomplished tasks for this day.</div>` : ''}
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            ${accomplished.map(t => `
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 10px; background: #F3F4F6; border: 1px solid #ECEEF2">
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <button type="button" onclick="toggleItem(${t.id})" style="border: none; background: transparent; cursor: pointer; padding: 0">
+                    <span style="width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: #0F766E; border: 2px solid #0F766E">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                    </span>
+                  </button>
+                  <span style="font-size: 15px; font-weight: 600; text-decoration: line-through; color: #6B7285">${t.title}</span>
+                  ${t.time ? `<span style="font-size: 12px; font-weight: 700; color: #9CA3AF">(${t.time})</span>` : ''}
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span style="padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; background: ${TAGS[t.tag]?.bg || '#E8EAEF'}; color: ${TAGS[t.tag]?.fg || '#3F4658'}">${t.tag}</span>
+                  <button type="button" class="del-btn" onclick="deleteItem(${t.id})">✕</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Ideas Renderer
+  function renderIdeas() {
+    const container = document.getElementById('ideas-board');
+    const stages = ['Just an idea', 'Planning', 'Building'];
+    const allIdeas = store.ideas[currentMode];
+
+    container.innerHTML = stages.map(stage => {
+      const items = allIdeas.filter(i => i.stage === stage);
+      return `
+        <section style="flex: 1 1 240px; min-width: 0; background: #E7E9EF; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 4px">
+            <h2 style="margin: 0; font-size: 16px; font-weight: 800">${stage}</h2>
+            <span style="min-width: 24px; padding: 2px 8px; border-radius: 999px; text-align: center; font-size: 12px; font-weight: 700; background: #FFFFFF; color: #3F4658">${items.length}</span>
+          </div>
+          ${items.length === 0 ? `<div style="font-size: 13px; color: #6B7285; text-align: center; padding: 12px 0">No items</div>` : ''}
+          ${items.map(idea => `
+            <article style="background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px">
+                <span style="font-size: 15px; font-weight: 600; line-height: 1.4">${idea.title}</span>
+                <button type="button" class="del-btn" onclick="deleteIdea(${idea.id})">✕</button>
+              </div>
+              <span style="align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: ${TAGS[idea.tag]?.bg || '#E8EAEF'}; color: ${TAGS[idea.tag]?.fg || '#3F4658'}">${idea.tag}</span>
+            </article>
+          `).join('')}
+        </section>
+      `;
+    }).join('');
+  }
+
+  // Projects Renderer
+  function renderProjects() {
+    const container = document.getElementById('projects-grid');
+    const projects = store.projects[currentMode];
+    const statusMap = {
+      Done: { bg: '#DFF3EE', fg: '#0B5F54' },
+      Building: { bg: '#FCEBD0', fg: '#7A4106' },
+      Planning: { bg: '#E9EAFB', fg: '#3730A3' }
+    };
+
+    if (projects.length === 0) {
+      container.innerHTML = `<div class="empty-state" style="flex: 1">No projects recorded yet.</div>`;
+      return;
+    }
+
+    container.innerHTML = projects.map(p => {
+      const st = statusMap[p.status] || { bg: '#EEF0F4', fg: '#3F4658' };
+      return `
+        <article style="flex: 1 1 280px; min-width: 0; background: #FFFFFF; border: 1px solid #E3E5EA; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 800; line-height: 1.3">${p.name}</h2>
+            <div style="display: flex; align-items: center; gap: 6px">
+              <span style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: ${st.bg}; color: ${st.fg}">${p.status}</span>
+              <button type="button" class="del-btn" onclick="deleteProject(${p.id})">✕</button>
+            </div>
+          </div>
+          <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #3F4658">${p.desc}</p>
+          ${p.tech.length > 0 ? `
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              ${p.tech.map(t => `<span style="padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; background: #EEF0F4; color: #3F4658">${t}</span>`).join('')}
+            </div>
+          ` : ''}
+          ${p.learned ? `
+            <div style="padding: 12px; border-radius: 12px; background: #F3F4F6">
+              <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #5A6172">What I learned</div>
+              <div style="margin-top: 4px; font-size: 14px; line-height: 1.5; color: #151922">${p.learned}</div>
+            </div>
+          ` : ''}
+          ${p.repo ? `<a href="${p.repo}" target="_blank" style="margin-top: auto; font-size: 14px; font-weight: 700; word-break: break-all">${p.repo}</a>` : ''}
+        </article>
+      `;
+    }).join('');
+  }
+
+  // Certificates Renderer with PDF & Image Thumbnails
+  function renderCerts() {
+    const container = document.getElementById('certs-container');
+    const certs = store.certs[currentMode];
+    const kindMap = {
+      Seminar: { bg: '#FCEBD0', fg: '#7A4106' },
+      Workshop: { bg: '#E9EAFB', fg: '#3730A3' },
+      Course: { bg: '#DFF3EE', fg: '#0B5F54' }
+    };
+
+    if (certs.length === 0) {
+      container.innerHTML = `<div class="empty-state">No certificates uploaded yet. Use the form above to add your certificates.</div>`;
+      return;
+    }
+
+    container.innerHTML = certs.map(c => {
+      const km = kindMap[c.kind] || { bg: '#EEF0F4', fg: '#3F4658' };
+      const safeName = c.name.replace(/'/g, "\\'");
+
+      let thumbHtml = `
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #E9EAFB; color: #3730A3; display: flex; align-items: center; justify-content: center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 14a5 5 0 100-10 5 5 0 000 10zM8.5 13.5L7 21l5-3 5 3-1.5-7.5"></path></svg>
+        </div>
+      `;
+
+      if (c.fileData) {
+        if (c.fileType === 'pdf') {
+          thumbHtml = `
+            <div onclick="viewCertificateDoc('${c.fileData}', 'pdf', '${safeName}')" style="width: 44px; height: 44px; border-radius: 12px; background: #FEE2E2; color: #DC2626; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 800; font-size: 12px" title="Click to view PDF">
+              PDF
+            </div>
+          `;
+        } else {
+          thumbHtml = `
+            <img src="${c.fileData}" alt="Thumb" onclick="viewCertificateDoc('${c.fileData}', 'image', '${safeName}')" style="width: 48px; height: 48px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid #E5E7EB" title="Click to view">
+          `;
+        }
+      }
+
+      return `
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 0; border-bottom: 1px solid #ECEEF2">
+          <div style="display: flex; align-items: center; gap: 14px">
+            ${thumbHtml}
+            <div>
+              <div style="font-size: 16px; font-weight: 700">${c.name}</div>
+              <div style="font-size: 14px; color: #5A6172">${c.issuer} • ${c.date}</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: ${km.bg}; color: ${km.fg}">${c.kind}</span>
+            ${c.fileData ? `<button type="button" onclick="viewCertificateDoc('${c.fileData}', '${c.fileType}', '${safeName}')" style="background: #F3F4F6; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer">View Document</button>` : ''}
+            <button type="button" class="del-btn" onclick="deleteCert(${c.id})">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Automatic Midnight Day-Rollover Watcher
+  setInterval(() => {
+    const freshDateStr = toDateString(new Date());
+    if (freshDateStr !== lastKnownDateStr) {
+      lastKnownDateStr = freshDateStr;
+      selectedDateStr = freshDateStr;
+      document.getElementById('task-date-input').value = freshDateStr;
+      render();
+    }
+  }, 10000);
+
+  // Initialize
+  render();
+</script>
+</body>
+</html>
